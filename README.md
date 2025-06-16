@@ -118,8 +118,10 @@ PostgreSQL + Weaviate (Data/VectorDB)
 
 ## 🧑‍💻 Contributors
 
-- **Zeu** — AI pipeline, backend architecture, deployment  
-- **Team Members** — [Add roles based on contribution]
+  
+- **obok137** — AI model
+- **lionell0901** - frontend, UI/UX
+- **ZeuPark** — AI pipeline, backend architecture, deployment
 
 ---
 
