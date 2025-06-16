@@ -963,10 +963,25 @@
         // 질문 선택 함수
         function selectQuestion(element) {
             const questionText = element.querySelector('.question-text').textContent;
-            const chatInput = element.closest('.page').querySelector('.chat-input');
-            if (chatInput) {
-                chatInput.value = questionText;
-                chatInput.focus();
+            const currentPage = getCurrentPage();
+            
+            if (currentPage === 'main') {
+                // 메인 페이지에서는 챗봇 모달 열기
+                openChatbot();
+                setTimeout(() => {
+                    const chatInput = document.getElementById('chat-input');
+                    if (chatInput) {
+                        chatInput.value = questionText;
+                        chatInput.focus();
+                    }
+                }, 100);
+            } else {
+                // 다른 페이지에서는 해당 페이지의 입력창에 설정
+                const chatInput = element.closest('.page').querySelector('.chat-input');
+                if (chatInput) {
+                    chatInput.value = questionText;
+                    chatInput.focus();
+                }
             }
         }
 
@@ -985,7 +1000,7 @@
             }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
             
@@ -998,43 +1013,67 @@
             // 타이핑 인디케이터 표시
             showTypingIndicator();
 
-            // AI 응답 시뮬레이션 (2초 후)
-            setTimeout(() => {
+            try {
+                // 백엔드 API 호출
+                const response = await fetch('http://localhost:8000/query', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: message,
+                        user_id: 'user_' + Date.now(), // 임시 사용자 ID
+                        context: {
+                            page: getCurrentPage(),
+                            timestamp: new Date().toISOString()
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    hideTypingIndicator();
+                    addMessage(data.response, 'bot');
+                } else {
+                    throw new Error('API 호출 실패');
+                }
+            } catch (error) {
+                console.error('API 호출 오류:', error);
                 hideTypingIndicator();
-                const responses = [
-                    "좋은 질문이네요! 더 자세히 알려드릴게요. 😊",
-                    "그런 부분이 궁금하셨군요! 천천히 설명해드릴게요.",
-                    "네! 그 부분은 이렇게 생각해보시면 됩니다.",
-                    "정말 좋은 점을 지적해주셨어요! 🎯",
-                    "그렇다면 이런 방법은 어떠세요?",
-                    "아하! 그 부분이 어려우셨군요. 쉽게 설명해드릴게요!",
-                    "훌륭한 생각이에요! 👏 더 알아볼까요?",
-                    "네, 맞습니다! 그 점에 대해 더 자세히 알려드릴게요."
+                
+                // 백업 응답 (API 실패시)
+                const backupResponses = [
+                    "죄송합니다. 현재 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.",
+                    "네트워크 연결을 확인해주세요. 서버와의 통신에 문제가 있습니다.",
+                    "일시적인 오류가 발생했습니다. 잠시 후 다시 질문해주세요.",
+                    "서버 점검 중입니다. 잠시만 기다려주세요."
                 ];
                 
-                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                const randomResponse = backupResponses[Math.floor(Math.random() * backupResponses.length)];
                 addMessage(randomResponse, 'bot');
-            }, 2000);
+            }
         }
 
-        function addMessage(text, sender) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('ko-KR', { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            messageDiv.innerHTML = `
-                <div>${text}</div>
-                <div class="message-time">${timeString}</div>
-            `;
-            
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        function getCurrentPage() {
+            const activePage = document.querySelector('.page.active');
+            if (activePage) {
+                return activePage.id.replace('-page', '');
+            }
+            return 'main';
+        }
+
+        // 페이지별 질문 전송 함수
+        async function sendPageQuestion(question) {
+            const input = document.querySelector('.chat-input');
+            if (input) {
+                input.value = question;
+                
+                // 전송 버튼 클릭
+                const sendBtn = input.nextElementSibling;
+                if (sendBtn) {
+                    sendBtn.click();
+                }
+            }
         }
 
         function showTypingIndicator() {
@@ -1068,7 +1107,83 @@
                     alert('게시글을 클릭했습니다!\n상세 페이지로 이동합니다.');
                 });
             });
+            
+            // 페이지별 전송 버튼 설정
+            setupPageSendButtons();
+            
+            // 입력창 Enter 키 이벤트
+            const chatInputs = document.querySelectorAll('.chat-input');
+            chatInputs.forEach(input => {
+                input.addEventListener('keypress', function(event) {
+                    if (event.key === 'Enter') {
+                        const sendBtn = this.nextElementSibling;
+                        if (sendBtn) {
+                            sendBtn.click();
+                        }
+                    }
+                });
+            });
         });
+
+        // 페이지별 질문 전송 함수
+        async function sendPageQuestion(question) {
+            const input = document.querySelector('.chat-input');
+            if (input) {
+                input.value = question;
+                
+                // 전송 버튼 클릭
+                const sendBtn = input.nextElementSibling;
+                if (sendBtn) {
+                    sendBtn.click();
+                }
+            }
+        }
+
+        function addMessage(text, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ko-KR', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = `
+                <div>${text}</div>
+                <div class="message-time">${timeString}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // 페이지별 전송 버튼 이벤트 추가
+        function setupPageSendButtons() {
+            const sendButtons = document.querySelectorAll('.send-btn');
+            sendButtons.forEach(button => {
+                button.addEventListener('click', async function() {
+                    const input = this.previousElementSibling;
+                    const question = input.value.trim();
+                    
+                    if (question === '') return;
+                    
+                    // 입력창 비우기
+                    input.value = '';
+                    
+                    // 챗봇 모달 열고 질문 전송
+                    openChatbot();
+                    setTimeout(() => {
+                        const chatInput = document.getElementById('chat-input');
+                        if (chatInput) {
+                            chatInput.value = question;
+                            sendMessage();
+                        }
+                    }, 100);
+                });
+            });
+        }
     </script>
 </body>
 </html>
