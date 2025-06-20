@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 놀이터 - 중장년층 커뮤니티</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', sans-serif;
+            background: linear-gradient(to bottom, #FFD700, #FFF8DC);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* 헤더 */
+        .header {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .ai-character {
+            position: absolute;
+            right: 20px;
+            top: 15px;
+            font-size: 50px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .ai-character:hover {
+            transform: scale(1.1);
+        }
+
+        /* 메인 메뉴 그리드 */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .menu-item:hover {
+            border-color: #FFD700;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+        }
+
+        .menu-item.active {
+            border-color: #FFD700;
+            background: #FFFACD;
+        }
+
+        .menu-item h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .menu-item p {
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        /* 커뮤니티 섹션 */
+        .community-section {
+            padding: 0 20px 30px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 4px solid #FFD700;
+        }
+
+        .community-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f8f8f8;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: #FFD700;
+            color: white;
+        }
+
+        .community-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .post-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .post-item:hover {
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding-left: 10px;
+        }
+
+        .post-item:last-child {
+            border-bottom: none;
+        }
+
+        .post-content {
+            flex: 1;
+        }
+
+        .post-title {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .post-meta {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .post-stats {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 하단 안내 */
+        .bottom-info {
+            text-align: center;
+            padding: 40px 20px;
+            background: #FFFACD;
+            margin-top: 30px;
+        }
+
+        .bottom-info p {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 5px;
+        }
+
+        .info-character {
+            font-size: 40px;
+            margin: 10px 0;
+        }
+
+        /* 예시 질문 스타일 */
+        .example-questions {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .example-intro {
+            margin-bottom: 20px;
+        }
+
+        .example-intro h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .example-intro p {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .question-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .question-item {
+            background: white;
+            border: 2px solid #f0f0f0;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .question-item:hover {
+            border-color: #FFD700;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255,215,0,0.3);
+        }
+
+        .question-text {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        /* 채팅 입력창 */
+        .chat-input-section {
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 0 20px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 2px solid #f0f0f0;
+            border-radius: 25px;
+            padding: 15px 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #FFD700;
+        }
+
+        .chat-input::placeholder {
+            color: #999;
+        }
+
+        .send-btn {
+            background: #FFD700;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .send-btn:hover {
+            background: #FFA500;
+            transform: scale(1.05);
+        }
+
+        /* 상세 페이지 */
+        .page {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            background: white;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .back-btn {
+            background: #FFD700;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 20px 20px 20px 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .wrt-btn {
+            background: white;
+            border: 2px solid #ccc;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 20px 20px 20px 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .page-content {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+
+        /*커뮤니티*/
+        /* 인스타그램 스타일 포스트 카드 */
+        /* 데스크탑 및 기본 */
+        .feed-container, .community-section {
+            padding: 0 16px; /* 전체 섹션 양쪽 여백 */
+        }
+
+        .post-card {
+            max-width: 500px;  /* 카드의 최대 너비 */
+            margin: 0 auto 16px auto;  /* 가운데 정렬 + 아래 여백 */
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+        }
+
+        /* 모바일 (너비 <= 768px) */
+        @media (max-width: 768px) {
+            .post-card {
+                max-width: 100%; /* 카드가 섹션 너비에 맞게 */
+                margin: 0 8px 16px 8px; /* 좌우 8px 여백 + 아래 16px */
+            }
+        }
+
+
+
+
+        /* 헤더: 유저명 + 아바타 */
+        .post-header {
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .post-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+
+        .post-username {
+            font-weight: 600;
+            font-size: 14px;
+            color: #212529;
+        }
+
+        .post-time {
+            font-size: 12px;
+            color: #999;
+            margin-left: auto;
+        }
+
+        /* 포스트 이미지나 콘텐츠 */
+        .post-content {
+            padding: 0 16px;
+        }
+
+        .post-text {
+            font-size: 14px;
+            color: #212529;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+    /* 액션 버튼들 (하단 아이콘 버튼 스타일) */
+    .post-actions {
+        display: flex;
+        padding: 8px 16px;
+        gap: 20px;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        color: #212529;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .action-btn:hover {
+        color: #000;
+    }
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+    .post-card {
+        padding: 12px 0;
+    }
+
+    .post-avatar {
+        width: 32px;
+        height: 32px;
+    }
+
+    .post-username {
+        font-size: 13px;
+    }
+
+    .post-text {
+        font-size: 13px;
+    }
+
+    .action-btn {
+        font-size: 14px;
+    }
+}
+
+        /* 챗봇 모달 */
+        .chatbot-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .chatbot-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .nori-img {
+            width: 80px;
+            height: 80px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* drop shadow */
+            border-radius: 50%; /* 캐릭터 이미지가 원형이라면 */
+        }
+
+        .nori-img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* hover 시 shadow 강조 */
+        }
+
+        .message.bot {
+            background: #f0f0f0;
+            color: #333;
+            align-self: flex-start;
+        }
+
+        .message.user {
+            background: #FFD700;
+            color: #333;
+            align-self: flex-end;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .chat-input-field {
+            flex: 1;
+            border: 2px solid #f0f0f0;
+            border-radius: 25px;
+            padding: 12px 16px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chat-input-field:focus {
+            border-color: #FFD700;
+        }
+
+        .send-button {
+            background: #FFD700;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .send-button:hover {
+            background: #FFA500;
+            transform: scale(1.05);
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background: #f0f0f0;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* 반응형 */
+        @media (max-width: 480px) {
+            .container {
+                max-width: 100%;
+            }
+            
+            .menu-grid {
+                padding: 15px;
+                gap: 12px;
+            }
+            
+            .menu-item {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    
+
+
+
+    <div class="container">
+        <!-- 메인 페이지 -->
+        <div id="main-page" class="page active">
+            <div class="header">
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="/static/꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
+                <div class="subtitle">중장년층을 위한 AI 친구</div>
+            </div>
+            
+            <!-- 메인 메뉴 -->
+            <div class="menu-grid">
+                <div class="menu-item" onclick="showPage('health')">
+                    <h3>건강 💪🏻</h3>
+                    <p>내 몸에 딱 맞는 운동 자세를<br>추천받아 보세요!</p>
+                </div>
+                <div class="menu-item" onclick="showPage('travel')">
+                    <h3>여행 ✈️</h3>
+                    <p>국내여행, 동선 고민 끝!<br>여행지와 최적의 코스를 추천드려요!</p>
+                </div>
+                <div class="menu-item" onclick="showPage('investment')">
+                    <h3>투자 💰</h3>
+                    <p>미국 뉴스 기반 시황 분석으로<br>추천 종목을 확인해보세요!</p>
+                </div>
+                <div class="menu-item" onclick="showPage('legal')">
+                    <h3>법률 ⚖️</h3>
+                    <p>내 판례를 분석해<br>상속·증여 판결을 예측해드려요!</p>
+                </div>
+            </div>
+
+            <!-- 커뮤니티 섹션 -->
+            <div class="community-section">
+                <h2 class="section-title" onclick="promptNicknameAndEnter()" style="cursor: pointer;">커뮤니티</h2>
+                
+                <div class="community-tabs">
+                    <button class="tab-btn active" onclick="showTab('popular')">인기글</button>
+                    <button class="tab-btn" onclick="showTab('recent')">최신글</button>
+                    <button class="tab-btn" onclick="showTab('qna')">질문답변</button>
+                </div>
+
+                <div class="community-content">
+                    <div id="popular-tab" class="tab-content">
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">스마트폰 카메라로 예쁜 사진 찍는 법</div>
+                                <div class="post-meta">귀여운 토끼 • 2시간 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 24</span>
+                                <span>💬 8</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">AI 번역기 사용해보니 정말 신기해요!</div>
+                                <div class="post-meta">똑똑한 펭귄 • 4시간 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 18</span>
+                                <span>💬 12</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">경주 여행 후기 - 사진 많이 찍었어요</div>
+                                <div class="post-meta">용감한 호랑이 • 6시간 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 31</span>
+                                <span>💬 15</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">혈압약 복용시간 알려주는 앱 추천</div>
+                                <div class="post-meta">행복한 거북이 • 1일 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 27</span>
+                                <span>💬 6</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="recent-tab" class="tab-content" style="display: none;">
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">오늘 처음으로 AI 채팅 해봤어요</div>
+                                <div class="post-meta">온화한 기린 • 방금 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 3</span>
+                                <span>💬 1</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">손자랑 화상통화하는 방법 배웠어요</div>
+                                <div class="post-meta">활발한 수달 • 15분 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 7</span>
+                                <span>💬 3</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">유튜브로 요가 따라하기 시작했어요</div>
+                                <div class="post-meta">근면한 사자 • 1시간 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 12</span>
+                                <span>💬 5</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">네이버 지도로 길찾기 성공!</div>
+                                <div class="post-meta">영리한 코알라 • 2시간 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 9</span>
+                                <span>💬 4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="qna-tab" class="tab-content" style="display: none;">
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">Q. 카카오톡 프로필 사진은 어떻게 바꾸나요?</div>
+                                <div class="post-meta">밝은 토끼 • 3시간 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 5</span>
+                                <span>💬 8</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">Q. AI가 정말 안전한가요?</div>
+                                <div class="post-meta">명랑한 호랑이 • 5시간 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 11</span>
+                                <span>💬 13</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">Q. 인터넷 쇼핑 안전하게 하는 방법</div>
+                                <div class="post-meta">자애로운 말 • 1일 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 19</span>
+                                <span>💬 11</span>
+                            </div>
+                        </div>
+                        <div class="post-item">
+                            <div class="post-content">
+                                <div class="post-title">Q. 스마트폰 용량이 부족하다고 나와요</div>
+                                <div class="post-meta">상냥한 강아지 • 1일 전</div>
+                            </div>
+                            <div class="post-stats">
+                                <span>❤️ 14</span>
+                                <span>💬 9</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 하단 안내 -->
+            <div class="bottom-info">
+                <p>어렵기만 했던 AI</p>
+                <p>'노리'와 함께 AI 놀이터에서</p>
+                <p>쉽고 재밌게</p>
+                <div class="info-character">
+                    <img src="/static/꿀벌노리.png" alt="꿀벌 노리" style="width: 100px; height: 100px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- 건강 페이지 -->
+        <div id="health-page" class="page">
+            <div class="header">
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="/static/꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
+                <div class="subtitle">건강 정보</div>
+            </div>
+            <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
+            <div class="example-questions">
+                <div class="example-intro">
+                    <h3>안녕하세요! AI 놀이터 지키미 '노리'입니다</h3>
+                    <p>여기서는 운동 자세를 추천받으실 수 있어요!</p>
+                    <p>어떤 운동이 궁금하신가요?</p>
+                </div>
+                
+                <div class="question-list">
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"허리 통증 완화에 도움이 되는 간단한 운동 자세를 알려주세요."</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"60대에 안전하게 할 수 있는 근력 운동이 있을까요?"</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"무릎 건강을 지키면서 할 수 있는 유산소 운동을 알려주세요."</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"관절에 무리가 가지 않는 전신 스트레칭 방법이 궁금해요."</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-section">
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" placeholder="건강에 대해 궁금한 점을 물어보세요">
+                    <button class="send-btn">🔍</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 여행 페이지 -->
+        <div id="travel-page" class="page">
+            <div class="header">
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="/static/꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
+                <div class="subtitle">여행 정보</div>
+            </div>
+            <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
+            <div class="example-questions">
+                <div class="example-intro">
+                    <h3>안녕하세요! 여행 전문가 '🐝 노리'입니다</h3>
+                    <p>전국 곳곳의 멋진 여행지를 추천해드릴게요!</p>
+                    <p>어떤 여행이 궁금하신가요?</p>
+                </div>
+                
+                <div class="question-list">
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"가을 단풍 구경하기 좋은 국내 여행지를 추천해주세요."</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"부모님과 함께 가기 좋은 온천 여행지는 어디인가요?"</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"기차로 갈 수 있는 당일치기 여행 코스를 알려주세요."</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"제주도 3박 4일 여행 일정을 짜주실 수 있나요?"</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-section">
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" placeholder="여행에 대해 궁금한 점을 물어보세요">
+                    <button class="send-btn">🔍</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 투자 페이지 -->
+        <div id="investment-page" class="page">
+            <div class="header">
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="/static/꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
+                <div class="subtitle">투자 정보</div>
+            </div>
+            <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
+            <div class="example-questions">
+                <div class="example-intro">
+                    <h3>안녕하세요! 재테크 전문가 '🐝 꿀벌'입니다</h3>
+                    <p>안전하고 현명한 투자 방법을 알려드릴게요!</p>
+                    <p>어떤 투자가 궁금하신가요?</p>
+                </div>
+                
+                <div class="question-list">
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"은행 적금과 예금의 차이점을 쉽게 설명해주세요."</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"노후를 위한 연금저축 상품은 어떤 것이 좋을까요?"</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"주식 투자 초보자가 알아야 할 기본 지식을 알려주세요."</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"펀드 투자할 때 주의해야 할 점들이 무엇인가요?"</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-section">
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" placeholder="투자에 대해 궁금한 점을 물어보세요">
+                    <button class="send-btn">🔍</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 법률 페이지 -->
+        <div id="legal-page" class="page">
+            <div class="header">
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="/static/꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
+                <div class="subtitle">법률 정보</div>
+            </div>
+            <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
+            <div class="example-questions">
+                <div class="example-intro">
+                    <h3>안녕하세요! 생활법률 전문가 '🐝 꿀벌'입니다</h3>
+                    <p>일상생활에서 필요한 법률 정보를 알려드릴게요!</p>
+                    <p>어떤 법률이 궁금하신가요?</p>
+                </div>
+                
+                <div class="question-list">
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"유언장 작성할 때 법적으로 유효하려면 어떻게 해야 하나요?"</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"전세 계약서 작성 시 주의해야 할 점들을 알려주세요."</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"보이스피싱 피해를 당했을 때 대처 방법이 궁금합니다."</div>
+                    </div>
+                    <div class="question-item" onclick="selectQuestion(this)">
+                        <div class="question-text">"의료사고가 발생했을 때 어떤 절차를 거쳐야 하나요?"</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="chat-input-section">
+                <div class="chat-input-container">
+                    <input type="text" class="chat-input" placeholder="법률에 대해 궁금한 점을 물어보세요">
+                    <button class="send-btn">🔍</button>
+                </div>
+            </div>
+        </div>
+        <!-- 커뮤니티 페이지 -->
+        <div id="community-page" class="page">
+            <div class="header">
+                <div class="ai-character" onclick="openChatbot()">
+                    <img src="/static/꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1>AI 놀이터</h1>
+                <div class="subtitle">커뮤니티</div>
+            </div>
+            <div class="nav-buttons">
+                <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
+                <button class="write-btn" onclick="showPage('writepost')">글쓰기 ✏</button>
+            </div>
+            <div class="tab-container">
+                <div class="community-tabs">
+                    <button class="tab-btn active" onclick="showTab('popular')">인기글</button>
+                    <button class="tab-btn" onclick="showTab('recent')">최신글</button>
+                    <button class="tab-btn" onclick="showTab('qna')">질문답변</button>
+                </div>
+            </div>
+            <div class="feed-container">
+                <div id="popular-tab" class="tab-content active">
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">🐰</div>
+                            <div class="post-user-info">
+                                <div class="post-username">귀여운 토끼</div>
+                                <div class="post-time">2시간 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">스마트폰 카메라로 예쁜 사진 찍는 법</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 24</button>
+                            <button class="action-btn comment-btn">💬 8</button>
+                        </div>
+                    </div>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">🐧</div>
+                            <div class="post-user-info">
+                                <div class="post-username">똑똑한 펭귄</div>
+                                <div class="post-time">4시간 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">AI 번역기 사용해보니 정말 신기해요!</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 18</button>
+                            <button class="action-btn comment-btn">💬 12</button>
+                        </div>
+                    </div>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">🐯</div>
+                            <div class="post-user-info">
+                                <div class="post-username">용감한 호랑이</div>
+                                <div class="post-time">6시간 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">경주 여행 후기 - 사진 많이 찍었어요</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 31</button>
+                            <button class="action-btn comment-btn">💬 15</button>
+                        </div>
+                    </div>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">🐢</div>
+                            <div class="post-user-info">
+                                <div class="post-username">행복한 거북이</div>
+                                <div class="post-time">1일 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">혈압약 복용시간 알려주는 앱 추천</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 27</button>
+                            <button class="action-btn comment-btn">💬 6</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="recent-tab" class="tab-content">
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">🦒</div>
+                            <div class="post-user-info">
+                                <div class="post-username">온화한 기린</div>
+                                <div class="post-time">방금 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">오늘 처음으로 AI 채팅 해봤어요</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 3</button>
+                            <button class="action-btn comment-btn">💬 1</button>
+                        </div>
+                    </div>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">🦦</div>
+                            <div class="post-user-info">
+                                <div class="post-username">활발한 수달</div>
+                                <div class="post-time">15분 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">손자랑 화상통화하는 방법 배웠어요</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 7</button>
+                            <button class="action-btn comment-btn">💬 3</button>
+                        </div>
+                    </div>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">🦁</div>
+                            <div class="post-user-info">
+                                <div class="post-username">근면한 사자</div>
+                                <div class="post-time">1시간 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">유튜브로 요가 따라하기 시작했어요</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 12</button>
+                            <button class="action-btn comment-btn">💬 5</button>
+                        </div>
+                    </div>
+                    <div class="post-card">
+                        <div class="post-header">
+                            <div class="post-avatar">🐨</div>
+                            <div class="post-user-info">
+                                <div class="post-username">영리한 코알라</div>
+                                <div class="post-time">2시간 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">네이버 지도로 길찾기 성공!</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 9</button>
+                            <button class="action-btn comment-btn">💬 4</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="qna-tab" class="tab-content">
+                    <div class="post-card qna-post">
+                        <div class="post-header">
+                            <div class="post-avatar">🐰</div>
+                            <div class="post-user-info">
+                                <div class="post-username">밝은 토끼 <span class="qna-badge">Q&A</span></div>
+                                <div class="post-time">3시간 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">Q. 카카오톡 프로필 사진은 어떻게 바꾸나요?</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 5</button>
+                            <button class="action-btn comment-btn">💬 8</button>
+                        </div>
+                    </div>
+                    <div class="post-card qna-post">
+                        <div class="post-header">
+                            <div class="post-avatar">🐯</div>
+                            <div class="post-user-info">
+                                <div class="post-username">명랑한 호랑이 <span class="qna-badge">Q&A</span></div>
+                                <div class="post-time">5시간 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">Q. AI가 정말 안전한가요?</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 11</button>
+                            <button class="action-btn comment-btn">💬 13</button>
+                        </div>
+                    </div>
+                    <div class="post-card qna-post">
+                        <div class="post-header">
+                            <div class="post-avatar">🐴</div>
+                            <div class="post-user-info">
+                                <div class="post-username">자애로운 말 <span class="qna-badge">Q&A</span></div>
+                                <div class="post-time">1일 전</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-text">Q. 인터넷 쇼핑 안전하게 하는 방법</div>
+                        </div>
+                        <div class="post-actions">
+                            <button class="action-btn like-btn">❤️ 19</button>
+                            <button class="action-btn comment-btn">💬 11</button>
+                        </div>
+                        <div class="feed-container" id="feed">
+                        <!-- 기존 post-card들이 여기에 추가됨 -->
+                        </div>
+                        <div class="loading-indicator" id="loading">
+                        <div class="spinner"></div>
+                        <p>게시글 불러오는 중...</p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 챗봇 모달 -->
+        <div id="chatbot-modal" class="chatbot-modal">
+            <div class="chatbot-container">
+                <div class="chatbot-header">
+                    <div class="chatbot-title">노리와 대화하기</div>
+                    <button class="close-btn" onclick="closeChatbot()">&times;</button>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message bot">
+                        <div>안녕하세요! 저는 AI 놀이터의 노리예요!</div>
+                        <div>무엇이든 편하게 물어보세요!</div>
+                        <div class="message-time">지금</div>
+                    </div>
+                </div>
+
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+
+                <div class="chat-input-area">
+                    <input type="text" class="chat-input-field" id="chat-input" 
+                           placeholder="메시지를 입력하세요..." onkeypress="handleKeyPress(event)">
+                    <button class="send-button" onclick="sendMessage()">▲</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 닉네임 모달 -->
+        <div id="nickname-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+            <div style="background:white; padding:20px; border-radius:10px; text-align:center; max-width:300px;">
+                <p id="nickname-text" style="margin-bottom:15px; font-weight:bold;"></p>
+                <button onclick="confirmNickname()" style="padding:8px 16px; background:#FFD700; border:none; border-radius:5px; cursor:pointer;">입장하기</button>
+            </div>
+        </div>
+
+        <script>
+            // 페이지 전환 함수
+            function showPage(pageId) {
+                // 모든 페이지 숨기기
+                const pages = document.querySelectorAll('.page');
+                pages.forEach(page => {
+                    page.classList.remove('active');
+                });
+                
+                // 선택된 페이지 보이기
+                const targetPageId = pageId === 'main' ? 'main-page' : pageId + '-page';
+                const targetPage = document.getElementById(targetPageId);
+                
+                if (targetPage) {
+                    targetPage.classList.add('active');
+                }
+            }
+
+            // 탭 전환 함수
+            function showTab(tabName) {
+                // 모든 탭 버튼 비활성화
+                const tabBtns = document.querySelectorAll('.tab-btn');
+                tabBtns.forEach(btn => btn.classList.remove('active'));
+                
+                // 클릭된 탭 버튼 활성화
+                event.target.classList.add('active');
+                
+                // 모든 탭 컨텐츠 숨기기
+                const tabContents = document.querySelectorAll('.tab-content');
+                tabContents.forEach(content => content.style.display = 'none');
+                
+                // 선택된 탭 컨텐츠 보이기
+                const targetTab = document.getElementById(tabName + '-tab');
+                if (targetTab) {
+                    targetTab.style.display = 'block';
+                }
+            }
+
+            // 질문 선택 함수
+            function selectQuestion(element) {
+                const questionText = element.querySelector('.question-text').textContent;
+                const currentPage = getCurrentPage();
+                
+                if (currentPage === 'main') {
+                    // 메인 페이지에서는 챗봇 모달 열기
+                    openChatbot();
+                    setTimeout(() => {
+                        const chatInput = document.getElementById('chat-input');
+                        if (chatInput) {
+                            chatInput.value = questionText;
+                            chatInput.focus();
+                        }
+                    }, 100);
+                } else {
+                    // 다른 페이지에서는 해당 페이지의 입력창에 설정
+                    const chatInput = element.closest('.page').querySelector('.chat-input');
+                    if (chatInput) {
+                        chatInput.value = questionText;
+                        chatInput.focus();
+                    }
+                }
+            }
+
+            // 챗봇 기능
+            function openChatbot() {
+                document.getElementById('chatbot-modal').style.display = 'block';
+            }
+
+            function closeChatbot() {
+                document.getElementById('chatbot-modal').style.display = 'none';
+            }
+
+            function handleKeyPress(event) {
+                if (event.key === 'Enter') {
+                    sendMessage();
+                }
+            }
+
+            async function sendMessage() {
+                const input = document.getElementById('chat-input');
+                const message = input.value.trim();
+                
+                if (message === '') return;
+
+                // 사용자 메시지 추가
+                addMessage(message, 'user');
+                input.value = '';
+
+                // 타이핑 인디케이터 표시
+                showTypingIndicator();
+
+                try {
+                    // 백엔드 API 호출 - 상대 경로 사용 (ngrok 호환)
+                    const response = await fetch('/chat/invoke', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            input: {
+                                messages: [
+                                    {
+                                        type: "human",
+                                        content: message
+                                    }
+                                ]
+                            }
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        hideTypingIndicator();
+                        
+                        // LangServe 응답 형식에서 메시지 추출
+                        if (data.output) {
+                            // 직접 output이 문자열인 경우
+                            if (typeof data.output === 'string') {
+                                addMessage(data.output, 'bot');
+                            }
+                            // output.messages 배열인 경우
+                            else if (data.output.messages && data.output.messages.length > 0) {
+                            const aiMessage = data.output.messages[data.output.messages.length - 1].content;
+                            addMessage(aiMessage, 'bot');
+                            }
+                            // output이 객체이고 content 속성이 있는 경우
+                            else if (data.output.content) {
+                                addMessage(data.output.content, 'bot');
+                            }
+                            else {
+                                addMessage('응답을 처리할 수 없습니다.', 'bot');
+                            }
+                        } else {
+                            addMessage('응답을 처리할 수 없습니다.', 'bot');
+                        }
+                    } else {
+                        throw new Error('API 호출 실패');
+                    }
+                } catch (error) {
+                    console.error('API 호출 오류:', error);
+                    hideTypingIndicator();
+                    
+                    // 백업 응답 (API 실패시)
+                    const backupResponses = [
+                        "죄송합니다. 현재 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.",
+                        "네트워크 연결을 확인해주세요. 서버와의 통신에 문제가 있습니다.",
+                        "일시적인 오류가 발생했습니다. 잠시 후 다시 질문해주세요.",
+                        "서버 점검 중입니다. 잠시만 기다려주세요."
+                    ];
+                    
+                    const randomResponse = backupResponses[Math.floor(Math.random() * backupResponses.length)];
+                    addMessage(randomResponse, 'bot');
+                }
+            }
+
+            function getCurrentPage() {
+                const activePage = document.querySelector('.page.active');
+                if (activePage) {
+                    return activePage.id.replace('-page', '');
+                }
+                return 'main';
+            }
+
+            // 페이지별 질문 전송 함수
+            async function sendPageQuestion(question) {
+                const input = document.querySelector('.chat-input');
+                if (input) {
+                    input.value = question;
+                    
+                    // 전송 버튼 클릭
+                    const sendBtn = input.nextElementSibling;
+                    if (sendBtn) {
+                        sendBtn.click();
+                    }
+                }
+            }
+
+            function showTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                const messagesContainer = document.getElementById('chat-messages');
+                
+                indicator.style.display = 'block';
+                messagesContainer.appendChild(indicator);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            function hideTypingIndicator() {
+                const indicator = document.getElementById('typing-indicator');
+                indicator.style.display = 'none';
+            }
+
+            // 모달 외부 클릭시 닫기
+            window.onclick = function(event) {
+                const modal = document.getElementById('chatbot-modal');
+                if (event.target === modal) {
+                    closeChatbot();
+                }
+            }
+
+            // DOM 로드 완료 후 이벤트 초기화
+            document.addEventListener('DOMContentLoaded', function() {
+                // 게시글 클릭 이벤트
+                const postItems = document.querySelectorAll('.post-item');
+                postItems.forEach(item => {
+                    item.addEventListener('click', function() {
+                        promptNicknameAndEnter();
+                    });
+                });
+                
+                // 페이지별 전송 버튼 설정
+                setupPageSendButtons();
+                
+                // 입력창 Enter 키 이벤트
+                const chatInputs = document.querySelectorAll('.chat-input');
+                chatInputs.forEach(input => {
+                    input.addEventListener('keypress', function(event) {
+                        if (event.key === 'Enter') {
+                            const sendBtn = this.nextElementSibling;
+                            if (sendBtn) {
+                                sendBtn.click();
+                            }
+                        }
+                    });
+                });
+            });
+
+            // 페이지별 질문 전송 함수
+            async function sendPageQuestion(question) {
+                const input = document.querySelector('.chat-input');
+                if (input) {
+                    input.value = question;
+                    
+                    // 전송 버튼 클릭
+                    const sendBtn = input.nextElementSibling;
+                    if (sendBtn) {
+                        sendBtn.click();
+                    }
+                }
+            }
+
+            function addMessage(text, sender) {
+                const messagesContainer = document.getElementById('chat-messages');
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ko-KR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                // 줄바꿈 문자를 <br> 태그로 변환
+                const formattedText = text.replace(/\n/g, '<br>');
+                
+                messageDiv.innerHTML = `
+                    <div>${formattedText}</div>
+                    <div class="message-time">${timeString}</div>
+                `;
+                
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            // 페이지별 전송 버튼 이벤트 추가
+            function setupPageSendButtons() {
+                const sendButtons = document.querySelectorAll('.send-btn');
+                sendButtons.forEach(button => {
+                    button.addEventListener('click', async function() {
+                        const input = this.previousElementSibling;
+                        const question = input.value.trim();
+                        
+                        if (question === '') return;
+                        
+                        // 입력창 비우기
+                        input.value = '';
+                        
+                        // 챗봇 모달 열고 질문 전송
+                        openChatbot();
+                        setTimeout(() => {
+                            const chatInput = document.getElementById('chat-input');
+                            if (chatInput) {
+                                chatInput.value = question;
+                                sendMessage();
+                            }
+                        }, 100);
+                    });
+                });
+            }
+
+            // 닉네임 생성 관련 변수와 함수들
+            const adjectives = [
+                "즐거운", "용감한", "귀여운", "똑똑한", "활발한",
+                "상냥한", "다정한", "따뜻한", "멋진", "재치있는",
+                "차분한", "엉뚱한", "씩씩한", "영리한", "사려깊은",
+                "명랑한", "온화한", "배려심 많은", "유쾌한", "정직한",
+                "창의적인", "활기찬", "신중한", "성실한", "근면한",
+                "끈기있는", "겸손한", "용의주도한", "자신감 있는", "열정적인",
+                "정열적인", "밝은", "기특한", "유능한", "자애로운"
+                ];
+                const animals = [
+                    "토끼", "호랑이", "거북이", "여우", "펭귄",
+                    "강아지", "고양이", "다람쥐", "사슴", "곰",
+                    "기린", "판다", "고래", "물개", "수달",
+                    "앵무새", "부엉이", "참새", "닭", "오리",
+                    "햄스터", "고슴도치", "코끼리", "돌고래", "치타",
+                    "늑대", "하마", "코알라", "사자", "말",
+                    "원숭이", "카멜레온", "악어", "두더지", "양"
+                    ];
+
+            function generateRandomNickname() {
+                const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                const animal = animals[Math.floor(Math.random() * animals.length)];
+                return `${adj} ${animal}`;
+            }
+
+            let communityEntered = false;
+            let nickname = "";
+
+            function promptNicknameAndEnter() {
+                nickname = generateRandomNickname();
+                document.getElementById('nickname-text').innerHTML = `${nickname} 님으로<br>입장하시겠습니까?`;
+                const modal = document.getElementById('nickname-modal');
+                modal.style.display = 'flex';
+            }
+
+            function confirmNickname() {
+                communityEntered = true;
+                document.getElementById('nickname-modal').style.display = 'none';
+                showCommunityPage();
+            }
+
+            function showCommunityPage() {
+                document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+                document.getElementById('community-page').classList.add('active');
+            }
+
+            // 무한 스크롤 감지
+            window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY; // 현재 스크롤 위치
+            const viewportHeight = window.innerHeight; // 화면 높이
+            const fullHeight = document.documentElement.scrollHeight; // 전체 문서 높이
+
+            // 스크롤이 거의 바닥에 도달했는지 확인
+            if (scrollY + viewportHeight >= fullHeight - 100) {
+                loadMorePosts();
+            }
+            });
+
+            let isLoading = false;
+
+            function loadMorePosts() {
+            if (isLoading) return; // 중복 로딩 방지
+            isLoading = true;
+
+            document.getElementById('loading').style.display = 'block';
+
+            // 모의 API 호출 (실제로는 fetch 등으로 서버에서 가져옴)
+            setTimeout(() => {
+                appendPosts(); // 새 게시글 추가
+                isLoading = false;
+                document.getElementById('loading').style.display = 'none';
+            }, 1000);
+            }
+
+            function appendPosts() {
+            const feed = document.getElementById('feed');
+
+            for (let i = 0; i < 5; i++) {
+                const post = document.createElement('div');
+                post.className = 'post-card';
+                post.innerHTML = `
+                <div class="post-header">
+                    <div class="post-avatar">🐰</div>
+                    <div class="post-username">새 유저</div>
+                    <div class="post-time">방금 전</div>
+                </div>
+                <div class="post-content">
+                    <div class="post-text">새로운 게시글 ${Math.floor(Math.random() * 1000)}</div>
+                </div>
+                <div class="post-actions">
+                    <button class="action-btn">❤️</button>
+                    <button class="action-btn">💬</button>
+                    <button class="action-btn">📤</button>
+                </div>
+                `;
+                feed.appendChild(post);
+            }
+            }
+
+        </script>
+    </div>
+</body>
+</html>
