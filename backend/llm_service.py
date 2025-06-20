@@ -4,8 +4,7 @@ import json
 import os
 import logging
 from typing import AsyncGenerator, Dict, Any, List, Optional
-from vllm import AsyncLLMEngine, AsyncEngineArgs, SamplingParams
-from transformers import AutoTokenizer
+from model_manager import ModelManager
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +12,9 @@ class LLMService:
     def __init__(self):
         self.engine = None
         self.tokenizer = None
-        self.model_name = os.getenv("LLM_MODEL", "microsoft/DialoGPT-medium")
+        self.model_manager = ModelManager()
+        
+        # 기본 설정
         self.max_tokens = int(os.getenv("MAX_TOKENS", "512"))
         self.temperature = float(os.getenv("TEMPERATURE", "0.7"))
         self.top_p = float(os.getenv("TOP_P", "0.9"))
@@ -27,84 +28,154 @@ class LLMService:
         self.hf_api_key = os.getenv("HUGGINGFACE_API_KEY")
         
     async def initialize(self):
-        """vLLM 엔진 초기화"""
+        """원격 API 모델 초기화"""
         try:
-            logger.info(f"LLM 모델 로딩 중: {self.model_name}")
+            # 현재 활성 모델 설정 가져오기
+            active_config = self.model_manager.get_active_model_config()
+            model_name = active_config.get("name", "my-chat-model")
+            model_type = active_config.get("type", "remote_api")
             
-            # vLLM 엔진 설정
-            engine_args = AsyncEngineArgs(
-                model=self.model_name,
-                tensor_parallel_size=self.tensor_parallel_size,
-                gpu_memory_utilization=self.gpu_memory_utilization,
-                max_model_len=2048,
-                disable_log_stats=False
-            )
+            logger.info(f"모델 초기화 중: {model_name} (타입: {model_type})")
             
-            # 엔진 생성
-            self.engine = AsyncLLMEngine.from_engine_args(engine_args)
-            
-            # 토크나이저 로드
-            self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-            if self.tokenizer.pad_token is None:
-                self.tokenizer.pad_token = self.tokenizer.eos_token
-            
-            logger.info("LLM 초기화 완료")
+            if model_type == "remote_api":
+                # 원격 API 모델은 엔진 초기화 불필요
+                logger.info(f"원격 API 모델 사용: {model_name}")
+            else:
+                logger.warning(f"지원하지 않는 모델 타입: {model_type}")
+                
+            logger.info("모델 초기화 완료")
             
         except Exception as e:
-            logger.error(f"LLM 초기화 실패: {e}")
-            # 백업으로 외부 API 사용
-            if self.openai_api_key or self.hf_api_key:
-                logger.info("외부 API를 백업으로 사용합니다")
-            else:
-                raise
+            logger.error(f"모델 초기화 실패: {e}")
+            raise
     
     async def shutdown(self):
         """리소스 정리"""
-        if self.engine:
-            # vLLM 엔진은 자동으로 정리됨
-            self.engine = None
-        logger.info("LLM 서비스 종료")
+        logger.info("모델 서비스 종료")
     
     def is_ready(self) -> bool:
         """서비스 준비 상태 확인"""
-        return self.engine is not None or self.openai_api_key or self.hf_api_key
-    
-    async def generate_response(self, prompt: str, **kwargs) -> str:
-        """단일 응답 생성"""
         try:
-            if self.engine:
-                return await self._generate_with_vllm(prompt, **kwargs)
-            elif self.openai_api_key:
-                return await self._generate_with_openai(prompt, **kwargs)
-            elif self.hf_api_key:
-                return await self._generate_with_huggingface(prompt, **kwargs)
+            active_config = self.model_manager.get_active_model_config()
+            model_type = active_config.get("type", "remote_api")
+            return model_type == "remote_api"
+        except:
+            return False
+    
+    async def generate_response(self, prompt: str, page: str = None, domain: str = "general", **kwargs) -> str:
+        """응답 생성 - 당신의 모델만 사용"""
+        try:
+            # 페이지별 고정 모델 우선 선택
+            if page:
+                model_id = self.model_manager.get_model_by_page(page)
             else:
-                raise RuntimeError("사용 가능한 LLM 서비스가 없습니다")
+                # 페이지가 없으면 도메인 기반 선택
+                model_id = self.model_manager.get_model_by_domain(domain)
+            
+            model_config = self.model_manager.models_config["models"].get(model_id, {})
+            model_type = model_config.get("type", "remote_api")
+            
+            # 모델별 파라미터 적용
+            model_params = model_config.get("parameters", {})
+            kwargs = {**model_params, **kwargs}
+            
+            logger.info(f"사용 모델: {model_id} (타입: {model_type}, 페이지: {page})")
+            
+            if model_type == "remote_api":
+                return await self._generate_with_remote_api(model_config, prompt, **kwargs)
+            else:
+                raise RuntimeError(f"지원하지 않는 모델 타입: {model_type}")
                 
         except Exception as e:
             logger.error(f"응답 생성 실패: {e}")
-            return "죄송합니다. 현재 서비스에 문제가 있어 응답을 생성할 수 없습니다."
+            return f"모델 서비스 오류: {str(e)}"
+    
+    async def _generate_with_remote_api(self, model_config: Dict[str, Any], prompt: str, **kwargs) -> str:
+        """원격 API로 응답 생성"""
+        try:
+            api_url = model_config.get("api_url")
+            api_key = model_config.get("api_key", "")
+            
+            if not api_url:
+                raise ValueError("API URL이 설정되지 않았습니다")
+            
+            headers = {
+                "Content-Type": "application/json"
+            }
+            
+            if api_key:
+                headers["Authorization"] = f"Bearer {api_key}"
+            
+            # API 엔드포인트 결정
+            if api_url.endswith("/"):
+                api_url = api_url.rstrip("/")
+            
+            # 다양한 API 형식 지원
+            data = {
+                "prompt": prompt,
+                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
+                "temperature": kwargs.get("temperature", self.temperature),
+                "top_p": kwargs.get("top_p", self.top_p)
+            }
+            
+            # OpenAI 형식도 지원
+            if "openai" in api_url.lower():
+                data = {
+                    "model": "gpt-3.5-turbo",
+                    "messages": [{"role": "user", "content": prompt}],
+                    "max_tokens": kwargs.get("max_tokens", self.max_tokens),
+                    "temperature": kwargs.get("temperature", self.temperature)
+                }
+                endpoint = "/v1/chat/completions"
+            else:
+                endpoint = "/generate"
+            
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    f"{api_url}{endpoint}",
+                    headers=headers,
+                    json=data,
+                    timeout=30
+                ) as response:
+                    
+                    if response.status == 200:
+                        result = await response.json()
+                        
+                        # 다양한 응답 형식 지원
+                        if "choices" in result and len(result["choices"]) > 0:
+                            # OpenAI 형식
+                            return result["choices"][0]["message"]["content"].strip()
+                        elif "response" in result:
+                            # 커스텀 형식
+                            return result["response"].strip()
+                        elif "text" in result:
+                            # 단순 텍스트 형식
+                            return result["text"].strip()
+                        else:
+                            # JSON 전체를 문자열로 반환
+                            return str(result).strip()
+                    else:
+                        error_text = await response.text()
+                        logger.error(f"Remote API 오류 ({response.status}): {error_text}")
+                        return "원격 모델 서버에서 오류가 발생했습니다."
+                        
+        except Exception as e:
+            logger.error(f"Remote API 호출 실패: {e}")
+            return "원격 모델 연결 실패"
     
     async def stream_response(self, prompt: str, **kwargs) -> AsyncGenerator[str, None]:
         """스트리밍 응답 생성"""
         try:
-            if self.engine:
-                async for chunk in self._stream_with_vllm(prompt, **kwargs):
-                    yield chunk
-            elif self.openai_api_key:
-                async for chunk in self._stream_with_openai(prompt, **kwargs):
-                    yield chunk
-            else:
-                # 스트리밍 미지원시 일반 응답을 청크로 분할
-                response = await self.generate_response(prompt, **kwargs)
-                words = response.split()
-                for i, word in enumerate(words):
-                    yield word + (" " if i < len(words) - 1 else "")
-                    await asyncio.sleep(0.05)  # 자연스러운 타이핑 효과
+            # 스트리밍 미지원시 일반 응답을 청크로 분할
+            response = await self.generate_response(prompt, **kwargs)
+            words = response.split()
+            for i, word in enumerate(words):
+                yield word + (" " if i < len(words) - 1 else "")
+                await asyncio.sleep(0.05)  # 자연스러운 타이핑 효과
                     
         except Exception as e:
             logger.error(f"스트리밍 응답 실패: {e}")
-            yield "죄송합니다. 현재 서비스에 문제가 있어 응답을 생성할 수 없습니다."
+            yield "스트리밍 중 오류가 발생했습니다."
     
     async def _generate_with_vllm(self, prompt: str, **kwargs) -> str:
         """vLLM으로 응답 생성"""
@@ -295,11 +366,12 @@ class LLMService:
     
     def get_model_info(self) -> Dict[str, Any]:
         """모델 정보 반환"""
+        active_config = self.model_manager.get_active_model_config()
         return {
-            "model_name": self.model_name,
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
-            "top_p": self.top_p,
-            "engine_type": "vLLM" if self.engine else "API",
+            "model_name": active_config.get("name", ""),
+            "model_type": active_config.get("type", "remote_api"),
+            "description": active_config.get("description", ""),
+            "api_url": active_config.get("api_url", ""),
+            "parameters": active_config.get("parameters", {}),
             "ready": self.is_ready()
         }

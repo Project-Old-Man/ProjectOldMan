@@ -54,8 +54,19 @@ class ModelManager:
         """현재 활성 모델 설정 반환"""
         return self.models_config["models"].get(self.active_model, {})
     
+    def get_model_by_page(self, page: str) -> Optional[str]:
+        """페이지별 고정 모델 찾기"""
+        page_mapping = self.models_config.get("page_mapping", {})
+        return page_mapping.get(page, self.active_model)
+    
     def get_model_by_domain(self, domain: str) -> Optional[str]:
-        """도메인에 맞는 모델 찾기"""
+        """도메인에 맞는 모델 찾기 (페이지 매핑 우선)"""
+        # 페이지 매핑이 있으면 그것을 우선 사용
+        page_mapping = self.models_config.get("page_mapping", {})
+        if domain in page_mapping:
+            return page_mapping[domain]
+        
+        # 페이지 매핑이 없으면 도메인 기반 선택
         if not self.models_config["model_switching"]["auto_switch_by_domain"]:
             return self.active_model
             
@@ -64,6 +75,15 @@ class ModelManager:
                 return model_id
         return self.active_model
     
+    def get_api_config(self, model_id: str) -> Dict[str, str]:
+        """원격 API 설정 반환"""
+        model_config = self.models_config["models"].get(model_id, {})
+        return {
+            "api_url": model_config.get("api_url", ""),
+            "api_key": model_config.get("api_key", ""),
+            "type": model_config.get("type", "local")
+        }
+
     def switch_model(self, model_id: str) -> bool:
         """모델 전환"""
         if model_id not in self.models_config["models"]:

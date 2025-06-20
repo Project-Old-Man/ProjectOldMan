@@ -142,6 +142,18 @@ async def process_query(request: QueryRequest, db: DatabaseManager = Depends(get
     try:
         logger.info(f"Query received: {request.question[:50]}...")
         
+        # 페이지 정보 추출 (우선순위: page > domain)
+        page = None
+        domain = "general"
+        
+        if request.context:
+            if "page" in request.context:
+                page = request.context["page"]
+                logger.info(f"페이지 감지: {page}")
+            elif "domain" in request.context:
+                domain = request.context["domain"]
+                logger.info(f"도메인 감지: {domain}")
+        
         # 1. 벡터 검색으로 관련 컨텍스트 찾기
         search_results = await vector_db.search(
             query=request.question,
@@ -155,8 +167,8 @@ async def process_query(request: QueryRequest, db: DatabaseManager = Depends(get
             user_context=request.context
         )
         
-        # 3. LLM 추론
-        response = await llm_service.generate_response(prompt)
+        # 3. LLM 추론 (페이지별 고정 모델 사용)
+        response = await llm_service.generate_response(prompt, page=page, domain=domain)
         
         # 4. DB에 쿼리 기록 저장
         query_record = await db.save_query(

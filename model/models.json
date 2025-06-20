@@ -1,35 +1,11 @@
 {
   "models": {
-    "default": {
-      "name": "microsoft/DialoGPT-medium",
-      "type": "huggingface",
-      "description": "기본 다이얼로그 모델",
-      "parameters": {
-        "max_tokens": 512,
-        "temperature": 0.7,
-        "top_p": 0.9
-      },
-      "supported_tasks": ["text-generation", "chat"],
-      "language": "en",
-      "domain": "general"
-    },
-    "korean-llm": {
-      "name": "./model/local/korean-llm",
-      "type": "local",
-      "description": "한국어 LLM 모델",
-      "parameters": {
-        "max_tokens": 512,
-        "temperature": 0.7,
-        "top_p": 0.9
-      },
-      "supported_tasks": ["text-generation", "chat"],
-      "language": "ko",
-      "domain": "general"
-    },
     "health-expert": {
-      "name": "./model/local/health-expert",
-      "type": "local",
-      "description": "건강 전문 모델",
+      "name": "health-model",
+      "type": "remote_api",
+      "description": "건강 전문 모델 (원격)",
+      "api_url": "https://health-model.ngrok.io",
+      "api_key": "",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.6,
@@ -40,9 +16,11 @@
       "domain": "health"
     },
     "travel-expert": {
-      "name": "./model/local/travel-expert",
-      "type": "local",
-      "description": "여행 전문 모델",
+      "name": "travel-model",
+      "type": "remote_api",
+      "description": "여행 전문 모델 (원격)",
+      "api_url": "https://travel-model.ngrok.io",
+      "api_key": "",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.8,
@@ -53,9 +31,11 @@
       "domain": "travel"
     },
     "legal-expert": {
-      "name": "./model/local/legal-expert",
-      "type": "local",
-      "description": "법률 전문 모델",
+      "name": "legal-model",
+      "type": "remote_api",
+      "description": "법률 전문 모델 (원격)",
+      "api_url": "https://legal-model.ngrok.io",
+      "api_key": "",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.5,
@@ -64,11 +44,32 @@
       "supported_tasks": ["text-generation", "chat"],
       "language": "ko",
       "domain": "legal"
+    },
+    "investment-expert": {
+      "name": "investment-model",
+      "type": "remote_api",
+      "description": "투자 전문 모델 (원격)",
+      "api_url": "https://investment-model.ngrok.io",
+      "api_key": "",
+      "parameters": {
+        "max_tokens": 1024,
+        "temperature": 0.7,
+        "top_p": 0.9
+      },
+      "supported_tasks": ["text-generation", "chat"],
+      "language": "ko",
+      "domain": "investment"
     }
   },
-  "active_model": "default",
+  "active_model": "health-expert",
   "model_switching": {
     "enabled": true,
-    "auto_switch_by_domain": true
+    "auto_switch_by_domain": false
+  },
+  "page_mapping": {
+    "health": "health-expert",
+    "travel": "travel-expert",
+    "legal": "legal-expert",
+    "investment": "investment-expert"
   }
-} 
+}

@@ -411,6 +411,19 @@
             color: #333;
         }
 
+        .chatbot-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+
         .close-btn {
             background: none;
             border: none;
@@ -895,7 +908,12 @@
         <div class="chatbot-container">
             <div class="chatbot-header">
                 <div class="chatbot-title">😊 노리와 대화하기</div>
-                <button class="close-btn" onclick="closeChatbot()">&times;</button>
+                <div class="chatbot-controls">
+                    <button class="mode-toggle" id="mode-toggle" onclick="toggleStreamingMode()" title="스트리밍 모드 토글">
+                        🔄 일반모드
+                    </button>
+                    <button class="close-btn" onclick="closeChatbot()">&times;</button>
+                </div>
             </div>
             
             <div class="chat-messages" id="chat-messages">
@@ -994,9 +1012,133 @@
             document.getElementById('chatbot-modal').style.display = 'none';
         }
 
+        // 스트리밍 모드 토글
+        let isStreamingMode = false;
+
+        function toggleStreamingMode() {
+            isStreamingMode = !isStreamingMode;
+            const toggleBtn = document.getElementById('mode-toggle');
+            const sendBtn = document.querySelector('.send-button');
+            
+            if (isStreamingMode) {
+                toggleBtn.textContent = '⚡ 스트리밍모드';
+                toggleBtn.title = '일반 모드로 전환';
+                sendBtn.onclick = sendMessageStream;
+            } else {
+                toggleBtn.textContent = '🔄 일반모드';
+                toggleBtn.title = '스트리밍 모드로 전환';
+                sendBtn.onclick = sendMessage;
+            }
+        }
+
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
-                sendMessage();
+                if (isStreamingMode) {
+                    sendMessageStream();
+                } else {
+                    sendMessage();
+                }
+            }
+        }
+
+        // 스트리밍 응답을 위한 함수
+        async function sendMessageStream() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            
+            if (message === '') return;
+
+            // 사용자 메시지 추가
+            addMessage(message, 'user');
+            input.value = '';
+
+            // 타이핑 인디케이터 표시
+            showTypingIndicator();
+
+            try {
+                // 스트리밍 API 호출
+                const response = await fetch('http://localhost:8000/query/stream', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        question: message,
+                        user_id: 'user_' + Date.now(),
+                        context: {
+                            page: getCurrentPage(),
+                            timestamp: new Date().toISOString()
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    hideTypingIndicator();
+                    
+                    // 스트리밍 응답 처리
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let botMessage = '';
+                    
+                    // 봇 메시지 컨테이너 생성
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message bot';
+                    document.getElementById('chat-messages').appendChild(messageDiv);
+                    
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n');
+                        
+                        for (const line of lines) {
+                            if (line.startsWith('data: ')) {
+                                const data = line.slice(6);
+                                if (data === '[DONE]') {
+                                    // 스트리밍 완료
+                                    const now = new Date();
+                                    const timeString = now.toLocaleTimeString('ko-KR', { 
+                                        hour: '2-digit', 
+                                        minute: '2-digit' 
+                                    });
+                                    messageDiv.innerHTML = `
+                                        <div>${botMessage}</div>
+                                        <div class="message-time">${timeString}</div>
+                                    `;
+                                    return;
+                                }
+                                
+                                try {
+                                    const parsed = JSON.parse(data);
+                                    if (parsed.content) {
+                                        botMessage += parsed.content;
+                                        messageDiv.innerHTML = `
+                                            <div>${botMessage}</div>
+                                            <div class="message-time">스트리밍 중...</div>
+                                        `;
+                                        messageDiv.scrollIntoView({ behavior: 'smooth' });
+                                    }
+                                } catch (e) {
+                                    // JSON 파싱 실패시 무시
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || '스트리밍 API 호출 실패');
+                }
+            } catch (error) {
+                console.error('스트리밍 API 호출 오류:', error);
+                hideTypingIndicator();
+                
+                let errorMessage = error.message;
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMessage = "서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.";
+                }
+                
+                addMessage(`❌ 오류: ${errorMessage}`, 'bot');
             }
         }
 
@@ -1035,22 +1177,24 @@
                     hideTypingIndicator();
                     addMessage(data.response, 'bot');
                 } else {
-                    throw new Error('API 호출 실패');
+                    // 백엔드에서 제공하는 상세 에러 메시지 사용
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'API 호출 실패');
                 }
             } catch (error) {
                 console.error('API 호출 오류:', error);
                 hideTypingIndicator();
                 
-                // 백업 응답 (API 실패시)
-                const backupResponses = [
-                    "죄송합니다. 현재 서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.",
-                    "네트워크 연결을 확인해주세요. 서버와의 통신에 문제가 있습니다.",
-                    "일시적인 오류가 발생했습니다. 잠시 후 다시 질문해주세요.",
-                    "서버 점검 중입니다. 잠시만 기다려주세요."
-                ];
+                // 백엔드 에러 메시지가 있으면 사용, 없으면 기본 메시지
+                let errorMessage = error.message;
                 
-                const randomResponse = backupResponses[Math.floor(Math.random() * backupResponses.length)];
-                addMessage(randomResponse, 'bot');
+                if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+                    errorMessage = "서버에 연결할 수 없습니다. 백엔드 서버가 실행 중인지 확인해주세요.";
+                } else if (error.message.includes('API 호출 실패')) {
+                    errorMessage = "서버에서 요청을 처리할 수 없습니다. 잠시 후 다시 시도해주세요.";
+                }
+                
+                addMessage(`❌ 오류: ${errorMessage}`, 'bot');
             }
         }
 
@@ -1125,18 +1269,35 @@
             });
         });
 
-        // 페이지별 질문 전송 함수
-        async function sendPageQuestion(question) {
-            const input = document.querySelector('.chat-input');
-            if (input) {
-                input.value = question;
-                
-                // 전송 버튼 클릭
-                const sendBtn = input.nextElementSibling;
-                if (sendBtn) {
-                    sendBtn.click();
-                }
-            }
+        // 페이지별 전송 버튼 이벤트 추가
+        function setupPageSendButtons() {
+            const sendButtons = document.querySelectorAll('.send-btn');
+            sendButtons.forEach(button => {
+                button.addEventListener('click', async function() {
+                    const input = this.previousElementSibling;
+                    const question = input.value.trim();
+                    
+                    if (question === '') return;
+                    
+                    // 입력창 비우기
+                    input.value = '';
+                    
+                    // 챗봇 모달 열고 질문 전송
+                    openChatbot();
+                    setTimeout(() => {
+                        const chatInput = document.getElementById('chat-input');
+                        if (chatInput) {
+                            chatInput.value = question;
+                            // 현재 모드에 따라 적절한 함수 호출
+                            if (isStreamingMode) {
+                                sendMessageStream();
+                            } else {
+                                sendMessage();
+                            }
+                        }
+                    }, 100);
+                });
+            });
         }
 
         function addMessage(text, sender) {
@@ -1157,32 +1318,6 @@
             
             messagesContainer.appendChild(messageDiv);
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // 페이지별 전송 버튼 이벤트 추가
-        function setupPageSendButtons() {
-            const sendButtons = document.querySelectorAll('.send-btn');
-            sendButtons.forEach(button => {
-                button.addEventListener('click', async function() {
-                    const input = this.previousElementSibling;
-                    const question = input.value.trim();
-                    
-                    if (question === '') return;
-                    
-                    // 입력창 비우기
-                    input.value = '';
-                    
-                    // 챗봇 모달 열고 질문 전송
-                    openChatbot();
-                    setTimeout(() => {
-                        const chatInput = document.getElementById('chat-input');
-                        if (chatInput) {
-                            chatInput.value = question;
-                            sendMessage();
-                        }
-                    }, 100);
-                });
-            });
         }
     </script>
 </body>
