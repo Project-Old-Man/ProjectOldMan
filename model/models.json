@@ -1,11 +1,10 @@
 {
   "models": {
     "health-expert": {
-      "name": "health-model",
-      "type": "remote_api",
-      "description": "건강 전문 모델 (원격)",
-      "api_url": "https://health-model.ngrok.io",
-      "api_key": "",
+      "name": "microsoft/DialoGPT-medium",
+      "type": "vllm",
+      "description": "건강 전문 모델 (vLLM CPU)",
+      "model_path": "microsoft/DialoGPT-medium",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.6,
@@ -16,11 +15,10 @@
       "domain": "health"
     },
     "travel-expert": {
-      "name": "travel-model",
-      "type": "remote_api",
-      "description": "여행 전문 모델 (원격)",
-      "api_url": "https://travel-model.ngrok.io",
-      "api_key": "",
+      "name": "microsoft/DialoGPT-medium",
+      "type": "vllm",
+      "description": "여행 전문 모델 (vLLM CPU)",
+      "model_path": "microsoft/DialoGPT-medium",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.8,
@@ -31,11 +29,10 @@
       "domain": "travel"
     },
     "legal-expert": {
-      "name": "legal-model",
-      "type": "remote_api",
-      "description": "법률 전문 모델 (원격)",
-      "api_url": "https://legal-model.ngrok.io",
-      "api_key": "",
+      "name": "microsoft/DialoGPT-medium",
+      "type": "vllm",
+      "description": "법률 전문 모델 (vLLM CPU)",
+      "model_path": "microsoft/DialoGPT-medium",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.5,
@@ -46,11 +43,10 @@
       "domain": "legal"
     },
     "investment-expert": {
-      "name": "investment-model",
-      "type": "remote_api",
-      "description": "투자 전문 모델 (원격)",
-      "api_url": "https://investment-model.ngrok.io",
-      "api_key": "",
+      "name": "microsoft/DialoGPT-medium",
+      "type": "vllm",
+      "description": "투자 전문 모델 (vLLM CPU)",
+      "model_path": "microsoft/DialoGPT-medium",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.7,

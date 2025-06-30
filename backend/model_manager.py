@@ -193,4 +193,8 @@ class ModelManager:
             "parameters": active_config.get("parameters", {}),
             "available_models": len(self.models_config["models"]),
             "auto_switch_enabled": self.models_config["model_switching"]["auto_switch_by_domain"]
-        } 
+        }
+
+    def get_models(self) -> dict:
+        """모든 모델 설정 반환"""
+        return self.models_config.get("models", {}) 

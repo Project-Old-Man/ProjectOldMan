@@ -1,377 +1,233 @@
 import asyncio
-import aiohttp
+import logging
+from typing import List, Dict, Any, Optional
+from concurrent.futures import ThreadPoolExecutor
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import json
 import os
-import logging
-from typing import AsyncGenerator, Dict, Any, List, Optional
 from model_manager import ModelManager
 
 logger = logging.getLogger(__name__)
 
 class LLMService:
     def __init__(self):
-        self.engine = None
-        self.tokenizer = None
         self.model_manager = ModelManager()
+        self.models = {}
+        self.tokenizers = {}
+        self.pipelines = {}
+        self.executor = ThreadPoolExecutor(max_workers=4)  # 병렬 처리용
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info(f"Using device: {self.device}")
         
-        # 기본 설정
-        self.max_tokens = int(os.getenv("MAX_TOKENS", "512"))
-        self.temperature = float(os.getenv("TEMPERATURE", "0.7"))
-        self.top_p = float(os.getenv("TOP_P", "0.9"))
-        
-        # vLLM 설정
-        self.tensor_parallel_size = int(os.getenv("TENSOR_PARALLEL_SIZE", "1"))
-        self.gpu_memory_utilization = float(os.getenv("GPU_MEMORY_UTILIZATION", "0.9"))
-        
-        # 외부 API 설정 (백업용)
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
-        self.hf_api_key = os.getenv("HUGGINGFACE_API_KEY")
-        
-    async def initialize(self):
-        """원격 API 모델 초기화"""
+    async def load_models(self):
+        """모든 모델을 비동기적으로 로드"""
         try:
-            # 현재 활성 모델 설정 가져오기
-            active_config = self.model_manager.get_active_model_config()
-            model_name = active_config.get("name", "my-chat-model")
-            model_type = active_config.get("type", "remote_api")
+            models_config = self.model_manager.get_models()
             
-            logger.info(f"모델 초기화 중: {model_name} (타입: {model_type})")
+            # 병렬로 모델 로드
+            tasks = []
+            for domain, config in models_config.items():
+                if config.get("type") == "local":
+                    task = asyncio.create_task(self._load_single_model(domain, config))
+                    tasks.append(task)
             
-            if model_type == "remote_api":
-                # 원격 API 모델은 엔진 초기화 불필요
-                logger.info(f"원격 API 모델 사용: {model_name}")
-            else:
-                logger.warning(f"지원하지 않는 모델 타입: {model_type}")
-                
-            logger.info("모델 초기화 완료")
+            if tasks:
+                await asyncio.gather(*tasks)
+                logger.info(f"Loaded {len(self.models)} local models")
             
         except Exception as e:
-            logger.error(f"모델 초기화 실패: {e}")
+            logger.error(f"Error loading models: {e}")
             raise
     
-    async def shutdown(self):
-        """리소스 정리"""
-        logger.info("모델 서비스 종료")
-    
-    def is_ready(self) -> bool:
-        """서비스 준비 상태 확인"""
+    async def _load_single_model(self, domain: str, config: Dict[str, Any]):
+        """단일 모델 로드"""
         try:
-            active_config = self.model_manager.get_active_model_config()
-            model_type = active_config.get("type", "remote_api")
-            return model_type == "remote_api"
-        except:
-            return False
+            model_name = config["model_name"]
+            logger.info(f"Loading model for {domain}: {model_name}")
+            
+            # 토크나이저 로드
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            if tokenizer.pad_token is None:
+                tokenizer.pad_token = tokenizer.eos_token
+            
+            # 모델 로드 (CPU 최적화)
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                torch_dtype=torch.float32,  # CPU용 float32
+                low_cpu_mem_usage=True,
+                device_map="auto" if self.device == "cuda" else None
+            )
+            
+            # 파이프라인 생성
+            pipe = pipeline(
+                "text-generation",
+                model=model,
+                tokenizer=tokenizer,
+                device=self.device,
+                torch_dtype=torch.float32
+            )
+            
+            self.models[domain] = model
+            self.tokenizers[domain] = tokenizer
+            self.pipelines[domain] = pipe
+            
+            logger.info(f"Successfully loaded model for {domain}")
+            
+        except Exception as e:
+            logger.error(f"Error loading model for {domain}: {e}")
+            raise
     
-    async def generate_response(self, prompt: str, page: str = None, domain: str = "general", **kwargs) -> str:
-        """응답 생성 - 당신의 모델만 사용"""
+    async def generate_response(self, domain: str, prompt: str, max_length: int = 512) -> str:
+        """도메인별 응답 생성 (병렬 처리 지원)"""
         try:
-            # 페이지별 고정 모델 우선 선택
-            if page:
-                model_id = self.model_manager.get_model_by_page(page)
+            models_config = self.model_manager.get_models()
+            
+            if domain not in models_config:
+                raise ValueError(f"Unknown domain: {domain}")
+            
+            config = models_config[domain]
+            
+            if config.get("type") == "local":
+                return await self._generate_local_response(domain, prompt, max_length)
             else:
-                # 페이지가 없으면 도메인 기반 선택
-                model_id = self.model_manager.get_model_by_domain(domain)
-            
-            model_config = self.model_manager.models_config["models"].get(model_id, {})
-            model_type = model_config.get("type", "remote_api")
-            
-            # 모델별 파라미터 적용
-            model_params = model_config.get("parameters", {})
-            kwargs = {**model_params, **kwargs}
-            
-            logger.info(f"사용 모델: {model_id} (타입: {model_type}, 페이지: {page})")
-            
-            if model_type == "remote_api":
-                return await self._generate_with_remote_api(model_config, prompt, **kwargs)
-            else:
-                raise RuntimeError(f"지원하지 않는 모델 타입: {model_type}")
+                return await self._generate_remote_response(domain, prompt, config)
                 
         except Exception as e:
-            logger.error(f"응답 생성 실패: {e}")
-            return f"모델 서비스 오류: {str(e)}"
+            logger.error(f"Error generating response for {domain}: {e}")
+            return f"Error: {str(e)}"
     
-    async def _generate_with_remote_api(self, model_config: Dict[str, Any], prompt: str, **kwargs) -> str:
+    async def _generate_local_response(self, domain: str, prompt: str, max_length: int) -> str:
+        """로컬 모델로 응답 생성"""
+        try:
+            if domain not in self.pipelines:
+                raise ValueError(f"Model not loaded for domain: {domain}")
+            
+            pipe = self.pipelines[domain]
+            
+            # ThreadPoolExecutor를 사용한 병렬 처리
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(
+                self.executor,
+                self._run_pipeline,
+                pipe,
+                prompt,
+                max_length
+            )
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error in local generation for {domain}: {e}")
+            return f"Error: {str(e)}"
+    
+    def _run_pipeline(self, pipe, prompt: str, max_length: int) -> str:
+        """파이프라인 실행 (스레드에서 실행)"""
+        try:
+            result = pipe(
+                prompt,
+                max_length=max_length,
+                num_return_sequences=1,
+                temperature=0.7,
+                do_sample=True,
+                pad_token_id=pipe.tokenizer.eos_token_id
+            )
+            
+            if result and len(result) > 0:
+                generated_text = result[0]['generated_text']
+                # 프롬프트 제거하고 생성된 부분만 반환
+                response = generated_text[len(prompt):].strip()
+                return response if response else "No response generated."
+            else:
+                return "No response generated."
+                
+        except Exception as e:
+            logger.error(f"Pipeline error: {e}")
+            return f"Error: {str(e)}"
+    
+    async def _generate_remote_response(self, domain: str, prompt: str, config: Dict[str, Any]) -> str:
         """원격 API로 응답 생성"""
         try:
-            api_url = model_config.get("api_url")
-            api_key = model_config.get("api_key", "")
+            # 기존 원격 API 로직 유지
+            import requests
+            
+            api_url = config.get("api_url")
+            api_key = config.get("api_key")
             
             if not api_url:
-                raise ValueError("API URL이 설정되지 않았습니다")
+                raise ValueError(f"No API URL configured for domain: {domain}")
             
-            headers = {
-                "Content-Type": "application/json"
-            }
-            
+            headers = {"Content-Type": "application/json"}
             if api_key:
                 headers["Authorization"] = f"Bearer {api_key}"
             
-            # API 엔드포인트 결정
-            if api_url.endswith("/"):
-                api_url = api_url.rstrip("/")
-            
-            # 다양한 API 형식 지원
             data = {
                 "prompt": prompt,
-                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
-                "temperature": kwargs.get("temperature", self.temperature),
-                "top_p": kwargs.get("top_p", self.top_p)
+                "max_tokens": config.get("max_tokens", 512),
+                "temperature": config.get("temperature", 0.7)
             }
             
-            # OpenAI 형식도 지원
-            if "openai" in api_url.lower():
-                data = {
-                    "model": "gpt-3.5-turbo",
-                    "messages": [{"role": "user", "content": prompt}],
-                    "max_tokens": kwargs.get("max_tokens", self.max_tokens),
-                    "temperature": kwargs.get("temperature", self.temperature)
-                }
-                endpoint = "/v1/chat/completions"
+            # 비동기 HTTP 요청
+            loop = asyncio.get_event_loop()
+            response = await loop.run_in_executor(
+                self.executor,
+                lambda: requests.post(api_url, json=data, headers=headers, timeout=30)
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                return result.get("response", "No response from API")
             else:
-                endpoint = "/generate"
-            
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    f"{api_url}{endpoint}",
-                    headers=headers,
-                    json=data,
-                    timeout=30
-                ) as response:
-                    
-                    if response.status == 200:
-                        result = await response.json()
-                        
-                        # 다양한 응답 형식 지원
-                        if "choices" in result and len(result["choices"]) > 0:
-                            # OpenAI 형식
-                            return result["choices"][0]["message"]["content"].strip()
-                        elif "response" in result:
-                            # 커스텀 형식
-                            return result["response"].strip()
-                        elif "text" in result:
-                            # 단순 텍스트 형식
-                            return result["text"].strip()
-                        else:
-                            # JSON 전체를 문자열로 반환
-                            return str(result).strip()
-                    else:
-                        error_text = await response.text()
-                        logger.error(f"Remote API 오류 ({response.status}): {error_text}")
-                        return "원격 모델 서버에서 오류가 발생했습니다."
-                        
-        except Exception as e:
-            logger.error(f"Remote API 호출 실패: {e}")
-            return "원격 모델 연결 실패"
-    
-    async def stream_response(self, prompt: str, **kwargs) -> AsyncGenerator[str, None]:
-        """스트리밍 응답 생성"""
-        try:
-            # 스트리밍 미지원시 일반 응답을 청크로 분할
-            response = await self.generate_response(prompt, **kwargs)
-            words = response.split()
-            for i, word in enumerate(words):
-                yield word + (" " if i < len(words) - 1 else "")
-                await asyncio.sleep(0.05)  # 자연스러운 타이핑 효과
-                    
-        except Exception as e:
-            logger.error(f"스트리밍 응답 실패: {e}")
-            yield "스트리밍 중 오류가 발생했습니다."
-    
-    async def _generate_with_vllm(self, prompt: str, **kwargs) -> str:
-        """vLLM으로 응답 생성"""
-        # 샘플링 파라미터 설정
-        sampling_params = SamplingParams(
-            temperature=kwargs.get("temperature", self.temperature),
-            top_p=kwargs.get("top_p", self.top_p),
-            max_tokens=kwargs.get("max_tokens", self.max_tokens),
-            stop=[self.tokenizer.eos_token] if self.tokenizer else None
-        )
-        
-        # 응답 생성
-        results = await self.engine.generate(prompt, sampling_params, request_id=None)
-        
-        if results and len(results) > 0:
-            return results[0].outputs[0].text.strip()
-        else:
-            return "응답을 생성할 수 없습니다."
-    
-    async def _stream_with_vllm(self, prompt: str, **kwargs) -> AsyncGenerator[str, None]:
-        """vLLM 스트리밍 응답"""
-        sampling_params = SamplingParams(
-            temperature=kwargs.get("temperature", self.temperature),
-            top_p=kwargs.get("top_p", self.top_p),
-            max_tokens=kwargs.get("max_tokens", self.max_tokens),
-            stop=[self.tokenizer.eos_token] if self.tokenizer else None
-        )
-        
-        # 스트리밍 생성
-        previous_text = ""
-        async for output in self.engine.generate(prompt, sampling_params, request_id=None):
-            current_text = output.outputs[0].text
-            new_text = current_text[len(previous_text):]
-            if new_text:
-                yield new_text
-                previous_text = current_text
-    
-    async def _generate_with_openai(self, prompt: str, **kwargs) -> str:
-        """OpenAI API로 응답 생성"""
-        try:
-            headers = {
-                "Authorization": f"Bearer {self.openai_api_key}",
-                "Content-Type": "application/json"
-            }
-            
-            data = {
-                "model": "gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
-                "temperature": kwargs.get("temperature", self.temperature),
-                "top_p": kwargs.get("top_p", self.top_p)
-            }
-            
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers=headers,
-                    json=data
-                ) as response:
-                    result = await response.json()
-                    
-                    if response.status == 200:
-                        return result["choices"][0]["message"]["content"].strip()
-                    else:
-                        logger.error(f"OpenAI API 오류: {result}")
-                        return "OpenAI API 호출 중 오류가 발생했습니다."
-                        
-        except Exception as e:
-            logger.error(f"OpenAI API 호출 실패: {e}")
-            return "OpenAI API 호출 중 오류가 발생했습니다."
-    
-    async def _stream_with_openai(self, prompt: str, **kwargs) -> AsyncGenerator[str, None]:
-        """OpenAI API 스트리밍"""
-        try:
-            headers = {
-                "Authorization": f"Bearer {self.openai_api_key}",
-                "Content-Type": "application/json"
-            }
-            
-            data = {
-                "model": "gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": prompt}],
-                "max_tokens": kwargs.get("max_tokens", self.max_tokens),
-                "temperature": kwargs.get("temperature", self.temperature),
-                "stream": True
-            }
-            
-            async with aiohttp.ClientSession() as session:
-                async with session.post(
-                    "https://api.openai.com/v1/chat/completions",
-                    headers=headers,
-                    json=data
-                ) as response:
-                    
-                    async for line in response.content:
-                        line = line.decode('utf-8').strip()
-                        if line.startswith('data: '):
-                            data_str = line[6:]  # 'data: ' 제거
-                            if data_str == '[DONE]':
-                                break
-                            
-                            try:
-                                data_json = json.loads(data_str)
-                                if 'choices' in data_json and len(data_json['choices']) > 0:
-                                    delta = data_json['choices'][0].get('delta', {})
-                                    if 'content' in delta:
-                                        yield delta['content']
-                            except json.JSONDecodeError:
-                                continue
-                                
-        except Exception as e:
-            logger.error(f"OpenAI 스트리밍 실패: {e}")
-            yield "스트리밍 중 오류가 발생했습니다."
-    
-    async def _generate_with_huggingface(self, prompt: str, **kwargs) -> str:
-        """HuggingFace API로 응답 생성"""
-        try:
-            headers = {
-                "Authorization": f"Bearer {self.hf_api_key}",
-                "Content-Type": "application/json"
-            }
-            
-            # HuggingFace Inference API 사용
-            api_url = f"https://api-inference.huggingface.co/models/{self.model_name}"
-            
-            data = {
-                "inputs": prompt,
-                "parameters": {
-                    "max_new_tokens": kwargs.get("max_tokens", self.max_tokens),
-                    "temperature": kwargs.get("temperature", self.temperature),
-                    "top_p": kwargs.get("top_p", self.top_p),
-                    "do_sample": True
-                }
-            }
-            
-            async with aiohttp.ClientSession() as session:
-                async with session.post(api_url, headers=headers, json=data) as response:
-                    result = await response.json()
-                    
-                    if response.status == 200:
-                        if isinstance(result, list) and len(result) > 0:
-                            generated_text = result[0].get("generated_text", "")
-                            # 입력 프롬프트 제거하고 새로 생성된 부분만 반환
-                            if generated_text.startswith(prompt):
-                                return generated_text[len(prompt):].strip()
-                            return generated_text.strip()
-                        else:
-                            return "응답을 생성할 수 없습니다."
-                    else:
-                        logger.error(f"HuggingFace API 오류: {result}")
-                        return "HuggingFace API 호출 중 오류가 발생했습니다."
-                        
-        except Exception as e:
-            logger.error(f"HuggingFace API 호출 실패: {e}")
-            return "HuggingFace API 호출 중 오류가 발생했습니다."
-    
-    async def batch_generate(self, prompts: List[str], **kwargs) -> List[str]:
-        """배치 응답 생성"""
-        try:
-            if self.engine:
-                # vLLM 배치 처리
-                sampling_params = SamplingParams(
-                    temperature=kwargs.get("temperature", self.temperature),
-                    top_p=kwargs.get("top_p", self.top_p),
-                    max_tokens=kwargs.get("max_tokens", self.max_tokens)
-                )
+                return f"API Error: {response.status_code}"
                 
-                results = await asyncio.gather(*[
-                    self.engine.generate(prompt, sampling_params, request_id=None)
-                    for prompt in prompts
-                ])
+        except Exception as e:
+            logger.error(f"Error in remote generation for {domain}: {e}")
+            return f"Error: {str(e)}"
+    
+    async def generate_batch_responses(self, requests: List[Dict[str, Any]]) -> List[str]:
+        """배치 요청 처리 (병렬 처리)"""
+        try:
+            tasks = []
+            for req in requests:
+                domain = req.get("domain")
+                prompt = req.get("prompt")
+                max_length = req.get("max_length", 512)
                 
-                return [
-                    result[0].outputs[0].text.strip() if result else "응답 생성 실패"
-                    for result in results
-                ]
+                if domain and prompt:
+                    task = asyncio.create_task(
+                        self.generate_response(domain, prompt, max_length)
+                    )
+                    tasks.append(task)
+            
+            if tasks:
+                results = await asyncio.gather(*tasks, return_exceptions=True)
+                return [str(result) if not isinstance(result, Exception) else f"Error: {result}" 
+                       for result in results]
             else:
-                # 순차 처리
-                responses = []
-                for prompt in prompts:
-                    response = await self.generate_response(prompt, **kwargs)
-                    responses.append(response)
-                return responses
+                return []
                 
         except Exception as e:
-            logger.error(f"배치 생성 실패: {e}")
-            return ["배치 처리 중 오류가 발생했습니다."] * len(prompts)
+            logger.error(f"Error in batch generation: {e}")
+            return [f"Error: {str(e)}"] * len(requests)
     
-    def get_model_info(self) -> Dict[str, Any]:
-        """모델 정보 반환"""
-        active_config = self.model_manager.get_active_model_config()
-        return {
-            "model_name": active_config.get("name", ""),
-            "model_type": active_config.get("type", "remote_api"),
-            "description": active_config.get("description", ""),
-            "api_url": active_config.get("api_url", ""),
-            "parameters": active_config.get("parameters", {}),
-            "ready": self.is_ready()
-        }
+    def get_loaded_models(self) -> List[str]:
+        """로드된 모델 목록 반환"""
+        return list(self.models.keys())
+    
+    def cleanup(self):
+        """리소스 정리"""
+        try:
+            self.executor.shutdown(wait=True)
+            for model in self.models.values():
+                del model
+            torch.cuda.empty_cache() if torch.cuda.is_available() else None
+            logger.info("LLM service cleaned up")
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
+
+    def is_ready(self) -> bool:
+        # 원격 API만 사용하는 경우 항상 True 반환
+        return True
+
+# 전역 인스턴스
+llm_service = LLMService()

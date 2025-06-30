@@ -449,6 +449,19 @@
             line-height: 1.4;
         }
 
+        .nori-img {
+            width: 80px;
+            height: 80px;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* drop shadow */
+            border-radius: 50%; /* 캐릭터 이미지가 원형이라면 */
+        }
+
+        .nori-img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4); /* hover 시 shadow 강조 */
+        }
+
         .message.bot {
             background: #f0f0f0;
             color: #333;
@@ -567,31 +580,30 @@
         <div id="main-page" class="page active">
             <!-- 헤더 -->
             <div class="header">
-                <div class="ai-character" onclick="openChatbot()">😊</div>
-                <h1>AI 놀이터</h1>
-                <div class="subtitle">
-                    인공지능이 어려우신가요? 걱정마세요!<br>
-                    쉽고 재미있게 함께 배워가요
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="./꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
                 </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
+                <div class="subtitle">중장년층을 위한 AI 친구</div>
             </div>
             
             <!-- 메인 메뉴 -->
             <div class="menu-grid">
                 <div class="menu-item" onclick="showPage('health')">
-                    <h3>건강 💊</h3>
-                    <p>건강한 삶을 위한 정보와<br>운동법을 알아보세요</p>
+                    <h3>건강 💪🏻</h3>
+                    <p>내 몸에 딱 맞는 운동 자세를<br>추천받아 보세요!</p>
                 </div>
                 <div class="menu-item" onclick="showPage('travel')">
                     <h3>여행 ✈️</h3>
-                    <p>전국 곳곳 여행 정보와<br>맛집을 소개해요</p>
+                    <p>국내여행, 동선 고민 끝!<br>여행지와 최적의 코스를 추천드려요!</p>
                 </div>
                 <div class="menu-item" onclick="showPage('investment')">
                     <h3>투자 💰</h3>
-                    <p>안전한 투자 정보와<br>재테크 노하우</p>
+                    <p>미국 뉴스 기반 시황 분석으로<br>추천 종목을 확인해보세요!</p>
                 </div>
                 <div class="menu-item" onclick="showPage('legal')">
                     <h3>법률 ⚖️</h3>
-                    <p>생활 법률 상식과<br>권리 보호 방법</p>
+                    <p>내 판례를 분석해<br>상속·증여 판결을 예측해드려요!</p>
                 </div>
             </div>
 
@@ -742,22 +754,26 @@
                 <p>어렵기만 했던 AI</p>
                 <p>'노리'와 함께 AI 놀이터에서</p>
                 <p>쉽고 재밌게</p>
-                <div class="info-character">😊</div>
+                <div class="info-character">
+                    <img src="./꿀벌노리.png" alt="꿀벌 노리" style="width: 100px; height: 100px;">
+                </div>
             </div>
         </div>
 
         <!-- 건강 페이지 -->
         <div id="health-page" class="page">
             <div class="header">
-                <div class="ai-character" onclick="openChatbot()">😊</div>
-                <h1>AI 놀이터</h1>
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="./꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
                 <div class="subtitle">건강 정보</div>
             </div>
             <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
             <div class="example-questions">
                 <div class="example-intro">
-                    <h3>안녕하세요! 건강 전문가 '🐝 노리'입니다</h3>
-                    <p>건강한 삶을 위한 정보를 알려드릴게요!</p>
+                    <h3>안녕하세요! AI 놀이터 지키미 '노리'입니다</h3>
+                    <p>여기서는 운동 자세를 추천받으실 수 있어요!</p>
                     <p>어떤 운동이 궁금하신가요?</p>
                 </div>
                 
@@ -788,8 +804,10 @@
         <!-- 여행 페이지 -->
         <div id="travel-page" class="page">
             <div class="header">
-                <div class="ai-character" onclick="openChatbot()">😊</div>
-                <h1>AI 놀이터</h1>
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="./꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
                 <div class="subtitle">여행 정보</div>
             </div>
             <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
@@ -827,8 +845,10 @@
         <!-- 투자 페이지 -->
         <div id="investment-page" class="page">
             <div class="header">
-                <div class="ai-character" onclick="openChatbot()">😊</div>
-                <h1>AI 놀이터</h1>
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="./꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
                 <div class="subtitle">투자 정보</div>
             </div>
             <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
@@ -866,8 +886,10 @@
         <!-- 법률 페이지 -->
         <div id="legal-page" class="page">
             <div class="header">
-                <div class="ai-character" onclick="openChatbot()">😊</div>
-                <h1>AI 놀이터</h1>
+                <div class="ai-character" onclick="openChatbot()" style="transform: translateY(-10%);">
+                    <img src="./꿀벌노리.png" alt="꿀벌 노리" class="nori-img">
+                </div>
+                <h1 onclick="location.reload()" style="cursor: pointer;">AI 놀이터</h1>
                 <div class="subtitle">법률 정보</div>
             </div>
             <button class="back-btn" onclick="showPage('main')">← 메인으로</button>
@@ -907,7 +929,7 @@
     <div id="chatbot-modal" class="chatbot-modal">
         <div class="chatbot-container">
             <div class="chatbot-header">
-                <div class="chatbot-title">😊 노리와 대화하기</div>
+                <div class="chatbot-title">노리와 대화하기</div>
                 <div class="chatbot-controls">
                     <button class="mode-toggle" id="mode-toggle" onclick="toggleStreamingMode()" title="스트리밍 모드 토글">
                         🔄 일반모드

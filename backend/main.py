@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -10,6 +10,7 @@ from datetime import datetime
 import logging
 import os
 from contextlib import asynccontextmanager
+import uvicorn
 
 # 로컬 imports
 from database import DatabaseManager, get_db
@@ -51,41 +52,61 @@ class ModelAddRequest(BaseModel):
     model_id: str
     model_config: Dict[str, Any]
 
+class BatchQueryRequest(BaseModel):
+    queries: List[Dict[str, Any]]
+
+class Response(BaseModel):
+    response: str
+    domain: str
+    model_info: Dict[str, Any]
+
 # 전역 서비스 인스턴스들
 llm_service = None
 vector_db = None
 prompt_manager = None
 model_manager = None
+db_manager = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # 시작 시 초기화
-    global llm_service, vector_db, prompt_manager, model_manager
+    """애플리케이션 생명주기 관리"""
+    global db_manager, llm_service, vector_db, prompt_manager, model_manager
     
-    logger.info("AI 백엔드 서버 초기화 중...")
+    logger.info("Starting application...")
     
-    # 서비스 초기화
-    model_manager = ModelManager()
-    llm_service = LLMService()
-    vector_db = VectorDBManager()
-    prompt_manager = PromptManager()
-    
-    # vLLM 모델 로드
-    await llm_service.initialize()
-    
-    # 벡터DB 연결
-    await vector_db.connect()
-    
-    logger.info("초기화 완료!")
-    
-    yield
-    
-    # 종료 시 정리
-    logger.info("서버 종료 중...")
-    if llm_service:
-        await llm_service.shutdown()
-    if vector_db:
-        await vector_db.disconnect()
+    try:
+        # 데이터베이스 연결
+        db_manager = DatabaseManager()
+        await db_manager.connect()
+        logger.info("Database initialized")
+        
+        # 벡터DB 연결
+        vector_db = VectorDBManager()
+        await vector_db.connect()
+        logger.info("Vector database initialized")
+        
+        # 모델 매니저, 프롬프트 매니저, LLM 서비스 초기화
+        model_manager = ModelManager()
+        prompt_manager = PromptManager()
+        llm_service = LLMService()
+        await llm_service.load_models()
+        logger.info("Models loaded")
+        
+        yield
+        
+    except Exception as e:
+        logger.error(f"Startup error: {e}")
+        raise
+    finally:
+        # 종료 시 정리
+        logger.info("Shutting down application...")
+        if db_manager:
+            await db_manager.disconnect()
+        if vector_db:
+            await vector_db.disconnect()
+        if llm_service:
+            llm_service.cleanup()
+        logger.info("Application shutdown complete")
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -386,8 +407,7 @@ async def switch_model(request: ModelSwitchRequest):
         
         # LLM 서비스 재초기화 (새 모델 로드)
         if llm_service:
-            await llm_service.shutdown()
-            await llm_service.initialize()
+            pass
         
         return {"message": f"모델이 {request.model_id}로 전환되었습니다"}
         
@@ -461,8 +481,79 @@ async def get_model_stats():
         logger.error(f"모델 통계 조회 실패: {e}")
         raise HTTPException(status_code=500, detail="모델 통계 조회 중 오류가 발생했습니다")
 
+@app.post("/batch-query")
+async def batch_query(request: BatchQueryRequest):
+    """배치 쿼리 처리 (병렬 처리)"""
+    try:
+        logger.info(f"Processing {len(request.queries)} batch queries")
+        
+        # 병렬로 응답 생성
+        responses = await llm_service.generate_batch_responses(request.queries)
+        
+        return {
+            "responses": responses,
+            "count": len(responses)
+        }
+        
+    except Exception as e:
+        logger.error(f"Batch query error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/models")
+async def get_models():
+    """사용 가능한 모델 목록"""
+    try:
+        models = model_manager.get_models()
+        loaded_models = llm_service.get_loaded_models()
+        
+        return {
+            "available_models": models,
+            "loaded_models": loaded_models,
+            "total_loaded": len(loaded_models)
+        }
+    except Exception as e:
+        logger.error(f"Error getting models: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/domains")
+async def get_domains():
+    """사용 가능한 도메인 목록"""
+    try:
+        models = model_manager.get_models()
+        domains = list(models.keys())
+        
+        return {
+            "domains": domains,
+            "count": len(domains)
+        }
+    except Exception as e:
+        logger.error(f"Error getting domains: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/reload-models")
+async def reload_models():
+    """모델 재로드"""
+    try:
+        logger.info("Reloading models...")
+        
+        # 기존 모델 정리
+        llm_service.cleanup()
+        
+        # 새 모델 로드
+        await llm_service.load_models()
+        
+        loaded_models = llm_service.get_loaded_models()
+        
+        return {
+            "message": "Models reloaded successfully",
+            "loaded_models": loaded_models,
+            "count": len(loaded_models)
+        }
+    except Exception as e:
+        logger.error(f"Error reloading models: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(
         "main:app",
         host="0.0.0.0",
