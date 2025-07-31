@@ -14,8 +14,8 @@ AI 기술을 쉽고 재미있게 배울 수 있는 중장년층을 위한 웹 �
 ### 백엔드
 - **FastAPI**: Python 웹 프레임워크
 - **PostgreSQL**: 메인 데이터베이스
-- **Weaviate**: 벡터 데이터베이스
-- **vLLM**: 대규모 언어 모델 추론
+- **FAISS**: 벡터 데이터베이스 (로컬)
+- **HuggingFace Transformers**: LLM 및 임베딩 모델
 - **Sentence Transformers**: 텍스트 임베딩
 
 ### 프론트엔드
@@ -27,18 +27,18 @@ AI 기술을 쉽고 재미있게 배울 수 있는 중장년층을 위한 웹 �
 ### 1. Docker Compose로 전체 시스템 실행 (권장)
 
 ```bash
-# 저장소 클론
 git clone <repository-url>
 cd ProjectOldMan
 
-# 환경 변수 설정 (선택사항)
 cp env.example .env
 # .env 파일을 편집하여 필요한 설정 추가
 
-# Docker Compose로 실행
-docker-compose up -d
+# (최초 1회) 여행 문서 임베딩
+cd backend/vector
+python embed_travel_docs.py
+cd ../..
 
-# 서비스 상태 확인
+docker-compose up -d --build
 docker-compose ps
 ```
 
@@ -48,36 +48,26 @@ docker-compose ps
 ```bash
 cd backend
 
-# 의존성 설치
 pip install -r requirements.txt
 
-# 환경 변수 설정
-export DATABASE_URL="postgresql://username:password@localhost:5432/database_name"
-export WEAVIATE_URL="http://localhost:8080"
+# (최초 1회) 여행 문서 임베딩
+python vector/embed_travel_docs.py
 
-# 서버 실행
-uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 #### 프론트엔드 실행
 ```bash
 cd frontend
-
-# Nginx로 서빙 (Docker 사용)
-docker build -t ai-playground-frontend .
-docker run -p 80:80 ai-playground-frontend
-
-# 또는 Python HTTP 서버 사용
-python -m http.server 80
+python -m http.server 8080
 ```
 
 ## 🌐 접속 방법
 
-- **프론트엔드**: http://localhost
+- **프론트엔드**: http://localhost:3000 (또는 8080)
 - **백엔드 API**: http://localhost:8000
 - **API 문서**: http://localhost:8000/docs
 - **PostgreSQL**: localhost:5432
-- **Weaviate**: http://localhost:8080
 
 ## 🔧 주요 API 엔드포인트
 
@@ -92,77 +82,55 @@ python -m http.server 80
 
 ```
 ProjectOldMan/
-├── backend/                 # FastAPI 백엔드
-│   ├── main.py             # 메인 애플리케이션
-│   ├── database.py         # 데이터베이스 관리
-│   ├── vector_db.py        # 벡터 데이터베이스
-│   ├── llm_service.py      # LLM 서비스
-│   ├── prompt_manager.py   # 프롬프트 관리
-│   ├── requirements.txt    # Python 의존성
-│   └── Dockerfile         # 백엔드 Docker 설정
-├── frontend/               # 웹 프론트엔드
-│   ├── index.html         # 메인 HTML 파일
-│   └── Dockerfile         # 프론트엔드 Docker 설정
-├── model/                  # AI 모델 파일들
-├── docker-compose.yml     # 전체 시스템 Docker 설정
-├── env.example            # 환경 변수 예시
-└── README.md              # 프로젝트 문서
+├── backend/
+│   ├── api/                # FastAPI 엔드포인트
+│   │   └── main.py
+│   ├── db/                 # 데이터베이스 관련
+│   │   ├── database.py
+│   │   └── data_utils.py
+│   ├── llm/                # LLM 및 프롬프트
+│   │   ├── llm_service.py
+│   │   ├── model_manager.py
+│   │   └── prompt_manager.py
+│   ├── vector/             # 벡터DB 및 임베딩
+│   │   ├── vector_db.py
+│   │   └── embed_travel_docs.py
+│   ├── scripts/            # 배포/유틸리티 스크립트
+│   │   └── deployment_scripts.sh
+│   ├── requirements.txt
+│   └── Dockerfile
+├── frontend/
+│   ├── index.html
+│   └── Dockerfile
+├── model/
+│   ├── models.json
+│   ├── README.md
+│   └── .gitkeep
+├── doc/
+│   ├── QUICK_START.md
+│   └── ... (기타 문서)
+├── test_compatibility.py
+├── docker-compose.yml
+├── env.example
+├── .gitignore
+└── README.md
 ```
 
 ## 🔄 최근 업데이트
 
-### 수정된 주요 사항:
-1. **의존성 파일명 수정**: `requirements_txt.txt` → `requirements.txt`
-2. **백엔드 Dockerfile 추가**: Python 3.11 기반 컨테이너
-3. **Docker Compose 설정**: 전체 시스템 통합 실행
-4. **프론트엔드-백엔드 연결**: API 호출 기능 구현
-5. **환경 변수 설정**: `.env` 파일 지원
+- 추천 시스템 개선: 사용자 히스토리를 기반으로 개인화된 추천 제공
+- 프론트엔드 UI 개선: 추천 결과 표시 기능 추가
+- 모델 관리 기능 강화: 로드된 모델 및 사용 가능한 모델 목록 조회
 
 ## 🐛 문제 해결
 
-### 일반적인 문제들:
-
-1. **포트 충돌**
-   ```bash
-   # 사용 중인 포트 확인
-   lsof -i :8000
-   lsof -i :80
-   ```
-
-2. **데이터베이스 연결 실패**
-   ```bash
-   # PostgreSQL 상태 확인
-   docker-compose logs postgres
-   ```
-
-3. **Weaviate 연결 실패**
-   ```bash
-   # Weaviate 상태 확인
-   curl http://localhost:8080/v1/.well-known/ready
-   ```
-
-4. **CORS 오류**
-   - 백엔드 CORS 설정이 올바른지 확인
-   - 프론트엔드에서 올바른 백엔드 URL 사용
+- 포트 충돌, DB 연결, 모델 다운로드, CORS 등은 doc/QUICK_START.md 참고
 
 ## 📝 개발 가이드
 
-### 새로운 기능 추가:
-1. 백엔드 API 엔드포인트 추가 (`backend/main.py`)
-2. 프론트엔드 UI 수정 (`frontend/index.html`)
-3. 필요한 경우 데이터베이스 스키마 업데이트
-
-### 테스트:
-```bash
-# 백엔드 테스트
-cd backend
-pytest
-
-# API 테스트
-curl -X POST "http://localhost:8000/query" \
-     -H "Content-Type: application/json" \
-     -d '{"question": "안녕하세요"}'
-```
+- 새로운 기능은 backend/api, backend/llm, backend/vector 등에서 구현
+- 프론트엔드 UI는 frontend/index.html에서 수정
+- 문서 임베딩은 backend/vector/embed_travel_docs.py로 관리
 
 ## 🤝 기여하기
 
@@ -174,8 +142,8 @@ curl -X POST "http://localhost:8000/query" \
 
 ## 📄 라이선스
 
-이 프로젝트는 MIT 라이선스 하에 배포됩니다.
+MIT License
 
 ## 📞 지원
 
-문제가 발생하거나 질문이 있으시면 이슈를 생성해주세요.
+이슈를 생성해 문의해주세요.

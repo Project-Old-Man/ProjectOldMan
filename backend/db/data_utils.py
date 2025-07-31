@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional
 import logging
 from datetime import datetime
 import aiofiles
-from vector_db import VectorDBManager
+from backend.vector.vector_db import VectorDBManager
 from database import DatabaseManager
 
 logger = logging.getLogger(__name__)

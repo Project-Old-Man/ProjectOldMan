@@ -8,8 +8,16 @@ logger = logging.getLogger(__name__)
 
 class ModelManager:
     def __init__(self, models_config_path: str = "./model/models.json"):
-        self.models_config_path = models_config_path
-        self.models_config = self._load_models_config()
+        # 모델 설정 파일 경로
+        self.models_config_path = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "../model/models.json"))
+        
+        if not os.path.exists(self.models_config_path):
+            raise FileNotFoundError(f"모델 설정 파일을 찾을 수 없습니다: {self.models_config_path}")
+        
+        # 모델 설정 로드
+        with open(self.models_config_path, "r", encoding="utf-8") as f:
+            self.models_config = json.load(f)
+
         self.active_model = self.models_config.get("active_model", "default")
         
     def _load_models_config(self) -> Dict[str, Any]:
@@ -197,4 +205,4 @@ class ModelManager:
 
     def get_models(self) -> dict:
         """모든 모델 설정 반환"""
-        return self.models_config.get("models", {}) 
+        return self.models_config.get("models", {})

@@ -71,8 +71,15 @@ sudo systemctl enable docker
 echo "📊 메모리 상태 확인:"
 free -h
 
+# 데이터 임베딩
+echo "📂 데이터 임베딩 시작..."
+cd ~/projectoldman/backend/vector
+python embed_travel_docs.py
+cd ~/projectoldman
+echo "✅ 데이터 임베딩 완료!"
+
 echo "✅ Oracle Cloud Free Tier 배포 준비 완료!"
 echo "📝 다음 단계:"
 echo "1. 프로젝트 파일을 이 서버에 업로드"
 echo "2. docker-compose up --build 실행"
-echo "3. 모델 다운로드 완료까지 대기 (처음 실행 시 시간 소요)" 
+echo "3. 모델 다운로드 완료까지 대기 (처음 실행 시 시간 소요)"

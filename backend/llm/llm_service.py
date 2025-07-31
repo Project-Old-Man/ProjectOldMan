@@ -6,12 +6,16 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import json
 import os
-from model_manager import ModelManager
+from llm.model_manager import ModelManager
+from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
 class LLMService:
     def __init__(self):
+        """Initialize the LLMService."""
+        self.model = None  # Ensure the model attribute is defined
+        self.model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"  # Default model name
         self.model_manager = ModelManager()
         self.models = {}
         self.tokenizers = {}
@@ -23,6 +27,10 @@ class LLMService:
     async def load_models(self):
         """모든 모델을 비동기적으로 로드"""
         try:
+            logger.info(f"Loading model: {self.model_name}")
+            self.model = SentenceTransformer(self.model_name)  # Load the model
+            logger.info("Model loaded successfully.")
+            
             models_config = self.model_manager.get_models()
             
             # 병렬로 모델 로드
@@ -78,24 +86,20 @@ class LLMService:
             logger.error(f"Error loading model for {domain}: {e}")
             raise
     
-    async def generate_response(self, domain: str, prompt: str, max_length: int = 512) -> str:
-        """도메인별 응답 생성 (병렬 처리 지원)"""
+    async def generate_response(self, prompt: str, page: Optional[str] = None, domain: Optional[str] = None) -> str:
+        """LLM 응답 생성"""
+        if not self.model:
+            raise RuntimeError("모델이 로드되지 않았습니다. load_models()를 호출하세요.")
         try:
-            models_config = self.model_manager.get_models()
-            
-            if domain not in models_config:
-                raise ValueError(f"Unknown domain: {domain}")
-            
-            config = models_config[domain]
-            
-            if config.get("type") == "local":
-                return await self._generate_local_response(domain, prompt, max_length)
-            else:
-                return await self._generate_remote_response(domain, prompt, config)
-                
+            logger.info(f"Generating response for prompt: {prompt[:50]}...")
+            response = self.model.generate(prompt)  # 모델 응답 생성
+            if not response:
+                logger.error("LLM 응답이 비어 있습니다.")
+                return "죄송합니다. 답변을 생성할 수 없습니다."
+            return response
         except Exception as e:
-            logger.error(f"Error generating response for {domain}: {e}")
-            return f"Error: {str(e)}"
+            logger.error(f"응답 생성 실패: {e}")
+            raise
     
     async def _generate_local_response(self, domain: str, prompt: str, max_length: int) -> str:
         """로컬 모델로 응답 생성"""

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL 데이터베이스 (메모리 최적화)
   postgres:
@@ -29,15 +27,19 @@ services:
 
   # 백엔드 API 서버 (Oracle Cloud Free Tier 최적화)
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
     environment:
       - DATABASE_URL=postgresql://username:password@postgres:5432/database_name
       - LOG_LEVEL=INFO
+      - MODEL_PATH=/app/model/models.json
     volumes:
       - ./backend:/app
       - model_cache:/root/.cache/huggingface
+      - ./model:/app/model
     depends_on:
       - postgres
     deploy:
@@ -54,6 +56,8 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    env_file:
+      - .env
 
   # 프론트엔드 웹 서버 (경량화)
   frontend:
@@ -70,4 +74,4 @@ services:
 
 volumes:
   postgres_data:
-  model_cache:  # HuggingFace 모델 캐시 공유 
+  model_cache:  # HuggingFace 모델 캐시 공유

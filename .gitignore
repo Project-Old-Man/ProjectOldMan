@@ -50,7 +50,6 @@ logs/
 *.sqlite3
 
 # Model files (대용량 파일들)
-model/local/
 model/*.bin
 model/*.safetensors
 model/*.gguf
@@ -76,4 +75,8 @@ temp/
 node_modules/
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log* 
+yarn-error.log*
+
+# Vector index and metadata files
+backend/vector/faiss.index
+backend/vector/faiss_meta.json

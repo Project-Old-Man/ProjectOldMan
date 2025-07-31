@@ -1,0 +1,106 @@
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #fffbee;
+    color: #333;
+}
+
+header {
+    background-color: #ffcc00;
+    color: #333;
+    text-align: center;
+    padding: 20px 0;
+    border-bottom: 5px solid #333;
+}
+
+header .logo {
+    width: 100px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+header p {
+    font-size: 1.2rem;
+    margin: 5px 0 0;
+}
+
+main {
+    padding: 20px;
+}
+
+#query-section, #recommend-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    border: 2px solid #333;
+    border-radius: 10px;
+    background-color: #fff;
+}
+
+#query-section h2, #recommend-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+textarea {
+    width: 100%;
+    height: 100px;
+    padding: 10px;
+    font-size: 1rem;
+    border: 2px solid #333;
+    border-radius: 5px;
+    resize: none;
+}
+
+button {
+    display: block;
+    margin: 10px 0;
+    padding: 10px 20px;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #333;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+#query-response {
+    margin-top: 20px;
+}
+
+#query-response h3 {
+    font-size: 1.2rem;
+    margin-bottom: 5px;
+}
+
+#recommendation-list {
+    list-style: none;
+    padding: 0;
+}
+
+#recommendation-list li {
+    padding: 10px;
+    margin-bottom: 5px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #fffcdd;
+}
+
+footer {
+    text-align: center;
+    padding: 10px 0;
+    background-color: #333;
+    color: #fff;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}

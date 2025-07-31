@@ -57,4 +57,4 @@ psutil>=5.9.0
 
 # 추가된 항목
 requests==2.31.0
-faiss-cpu 
+faiss-cpu

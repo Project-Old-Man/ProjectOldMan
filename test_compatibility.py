@@ -171,6 +171,24 @@ def test_frontend_compatibility():
     except requests.exceptions.RequestException as e:
         print(f"❌ 프론트엔드 호환성 테스트 실패: {e}")
 
+def test_recommend_endpoint():
+    """추천 엔드포인트 테스트"""
+    print("\n🔍 추천 엔드포인트 테스트 중...")
+    try:
+        response = requests.post(
+            f"{BACKEND_URL}/recommend",
+            json={"user_id": "test_user", "limit": 5},
+            timeout=30
+        )
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ 성공")
+            print(f"   - 추천 수: {len(data['recommendations'])}")
+        else:
+            print(f"❌ 실패: {response.status_code}")
+    except requests.exceptions.RequestException as e:
+        print(f"❌ 요청 실패: {e}")
+
 def main():
     """메인 테스트 실행"""
     print("🚀 프론트엔드-백엔드 호환성 테스트 시작")
@@ -179,7 +197,7 @@ def main():
     # 1. 백엔드 상태 확인
     if not test_backend_health():
         print("\n❌ 백엔드가 실행되지 않았습니다.")
-        print("   백엔드 서버를 먼저 실행해주세요: python backend/main.py")
+        print("   백엔드 서버를 먼저 실행해주세요: uvicorn api.main:app --reload")
         return
     
     # 2. 기본 쿼리 테스트
@@ -194,6 +212,9 @@ def main():
     # 5. 프론트엔드 호환성 테스트
     test_frontend_compatibility()
     
+    # 6. 추천 시스템 테스트
+    test_recommend_endpoint()
+    
     print("\n" + "=" * 50)
     print("✅ 호환성 테스트 완료!")
     print("\n📋 테스트 결과 요약:")
@@ -205,4 +226,4 @@ def main():
     print("\n🎉 프론트엔드와 백엔드가 완벽하게 호환됩니다!")
 
 if __name__ == "__main__":
-    main() 
+    main()

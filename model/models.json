@@ -2,9 +2,8 @@
   "models": {
     "health-expert": {
       "name": "microsoft/DialoGPT-medium",
-      "type": "vllm",
-      "description": "건강 전문 모델 (vLLM CPU)",
-      "model_path": "microsoft/DialoGPT-medium",
+      "type": "huggingface",
+      "description": "건강 전문 모델 (HuggingFace Hub)",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.6,
@@ -16,12 +15,11 @@
     },
     "travel-expert": {
       "name": "microsoft/DialoGPT-medium",
-      "type": "vllm",
-      "description": "여행 전문 모델 (vLLM CPU)",
-      "model_path": "microsoft/DialoGPT-medium",
+      "type": "huggingface",
+      "description": "여행 전문가 LLM (HuggingFace Hub)",
       "parameters": {
         "max_tokens": 1024,
-        "temperature": 0.8,
+        "temperature": 0.7,
         "top_p": 0.9
       },
       "supported_tasks": ["text-generation", "chat"],
@@ -30,9 +28,8 @@
     },
     "legal-expert": {
       "name": "microsoft/DialoGPT-medium",
-      "type": "vllm",
-      "description": "법률 전문 모델 (vLLM CPU)",
-      "model_path": "microsoft/DialoGPT-medium",
+      "type": "huggingface",
+      "description": "법률 전문 모델 (HuggingFace Hub)",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.5,
@@ -44,9 +41,8 @@
     },
     "investment-expert": {
       "name": "microsoft/DialoGPT-medium",
-      "type": "vllm",
-      "description": "투자 전문 모델 (vLLM CPU)",
-      "model_path": "microsoft/DialoGPT-medium",
+      "type": "huggingface",
+      "description": "투자 전문 모델 (HuggingFace Hub)",
       "parameters": {
         "max_tokens": 1024,
         "temperature": 0.7,
@@ -57,7 +53,7 @@
       "domain": "investment"
     }
   },
-  "active_model": "health-expert",
+  "active_model": "travel-expert",
   "model_switching": {
     "enabled": true,
     "auto_switch_by_domain": false

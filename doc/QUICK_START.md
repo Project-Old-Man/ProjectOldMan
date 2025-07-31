@@ -3,7 +3,7 @@
 ## 📋 **필요 조건**
 
 - ✅ Python 3.8 이상
-- ✅ Docker (선택사항)
+- ✅ Docker (권장)
 - ✅ 웹 브라우저
 - ✅ 인터넷 연결
 
@@ -39,7 +39,7 @@ python3 -m http.server 8080
 
 ---
 
-## 🎯 **방법 2: 전체 시스템 실행 (완전한 AI 기능)**
+## 🎯 **방법 2: 전체 시스템 실행 (로컬 개발)**
 
 ### 1단계: 환경 설정
 ```bash
@@ -47,29 +47,29 @@ cd /Users/Zeu/Downloads/ProjectOldMan
 cp env.example .env
 ```
 
-### 2단계: 백엔드 실행 (새 터미널 창)
+### 2단계: 여행 문서 임베딩 (최초 1회만 실행)
+```bash
+cd backend/vector
+python embed_travel_docs.py
+cd ../..
+```
+
+### 3단계: 백엔드 실행 (새 터미널 창)
 ```bash
 cd backend
 pip install -r requirements.txt
-python3 -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 3단계: 프론트엔드 실행 (또 다른 터미널 창)
+### 4단계: 프론트엔드 실행 (또 다른 터미널 창)
 ```bash
 cd frontend
 python3 -m http.server 8080
 ```
 
-### 4단계: 브라우저에서 확인
+### 5단계: 브라우저에서 확인
 - 프론트엔드: `http://localhost:8080`
-- 백엔드 API: `http://localhost:8000`
-- API 문서: `http://localhost:8000/docs`
-
-### ✅ **완전한 기능**
-- ✅ AI 챗봇 작동
-- ✅ 실시간 응답 생성
-- ✅ 대화 기록 저장
-- ✅ 벡터 검색 기반 답변
+- 백엔드: `http://localhost:8000`
 
 ---
 
@@ -81,17 +81,29 @@ docker --version
 docker-compose --version
 ```
 
-### 2단계: 전체 시스템 실행
+### 2단계: 환경 설정
 ```bash
 cd /Users/Zeu/Downloads/ProjectOldMan
-docker-compose up -d
+cp env.example .env
 ```
 
-### 3단계: 브라우저에서 확인
-- 프론트엔드: `http://localhost`
-- 백엔드 API: `http://localhost:8000`
+### 3단계: 여행 문서 임베딩 (최초 1회만 실행)
+```bash
+cd backend/vector
+python embed_travel_docs.py
+cd ../..
+```
 
-### 4단계: 서비스 상태 확인
+### 4단계: 전체 시스템 실행
+```bash
+docker-compose up -d --build
+```
+
+### 5단계: 브라우저에서 확인
+- 프론트엔드: `http://localhost:3000`
+- 백엔드: `http://localhost:8000`
+
+### 6단계: 서비스 상태 확인
 ```bash
 docker-compose ps
 ```
@@ -127,6 +139,19 @@ sudo docker-compose up -d
 - 백엔드가 실행 중인지 확인
 - 브라우저 개발자 도구에서 오류 확인
 - `http://localhost:8000/health` 접속 테스트
+
+### ❌ **모델 자동 다운로드 실패**
+- 인터넷 연결 확인
+- Docker의 model_cache 볼륨 확인
+
+### ❌ **임베딩/FAISS 인덱스 없음**
+- `embed_travel_docs.py` 재실행
+
+### ❌ **DB 연결 오류**
+- `docker-compose logs postgres` 로 로그 확인
+
+### ❌ **CORS 오류**
+- 백엔드 CORS 설정 확인
 
 ---
 
@@ -168,4 +193,4 @@ sudo docker-compose up -d
 3. `http://localhost:8000/health` 접속 테스트
 4. README.md 파일 참조
 
-**즐거운 AI 놀이터 이용하세요! 🎉** 
+**즐거운 AI 놀이터 이용하세요! 🎉**
