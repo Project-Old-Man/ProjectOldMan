@@ -405,15 +405,6 @@
             background: #dbeafe;
             transform: translateY(-1px);
         }
-
-        /* 추천 버튼 폰트 크기 증가 */
-        .recommendation-button {
-            font-size: 20px;
-            font-weight: 700;
-            padding: 14px 24px;
-            border-radius: 14px;
-            transition: all 0.2s ease;
-        }
     </style>
 </head>
 <body>
@@ -493,14 +484,14 @@
                         </div>
                     </div>
 
-                    <!-- 추천 탭 개선 -->
+                    <!-- 추천 탭 -->
                     <div id="recommendationsContent" class="tab-content hidden">
                         <div class="text-lg text-gray-700 mb-5 font-semibold menu-font">추천 질문</div>
                         <div id="recommendationsList" class="space-y-2">
                             <!-- 추천 항목들 -->
                         </div>
                         <button onclick="loadRecommendations()" 
-                                class="recommendation-button w-full mt-5 bg-gradient-to-r from-yellow-200 to-yellow-300 text-yellow-900 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transition-all button-font shadow-md">
+                                class="w-full mt-5 px-5 py-3 bg-gradient-to-r from-yellow-200 to-yellow-300 text-yellow-900 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transition-all text-base font-semibold button-font shadow-md">
                             새로운 추천 가져오기
                         </button>
                     </div>
@@ -621,7 +612,7 @@
             else if (tabName === 'recommendations') loadRecommendations();
         }
 
-        // 카테고리 변경 - 원래대로 복구
+        // 카테고리 변경
         function setCategory(category) {
             currentCategory = category;
             
@@ -635,17 +626,35 @@
             document.getElementById('chatTitle').textContent = categoryInfo[category].title;
             document.getElementById('chatSubtitle').textContent = categoryInfo[category].subtitle;
             
-            // 노리 아이콘 업데이트
-            updateNoriIcons(category);
+            // 노리 아이콘 업데이트 (강제 새로고침)
+            setTimeout(() => updateNoriIcons(category), 100);
         }
 
-        // 노리 아이콘 업데이트 - 원래대로 복구
+        // 노리 아이콘 업데이트 - 새로운 여백 반영
         function updateNoriIcons(category) {
+            const timestamp = Date.now();
             const noriClass = `nori-${category}`;
             
-            document.getElementById('chatHeaderIcon').className = `nori-icon nori-large ${noriClass}`;
-            document.getElementById('welcomeIcon').className = `nori-icon nori-xl ${noriClass} mx-auto mb-3`;
-            document.getElementById('typingIcon').className = `nori-icon ${noriClass}`;
+            // 캐시 버스팅이 포함된 이미지 URL
+            const imageUrl = `./images/nori-${category}.png?v=${timestamp}`;
+            
+            const chatHeaderIcon = document.getElementById('chatHeaderIcon');
+            if (chatHeaderIcon) {
+                chatHeaderIcon.className = `nori-icon nori-large ${noriClass}`;
+                chatHeaderIcon.style.backgroundImage = `url('${imageUrl}')`;
+            }
+            
+            const welcomeIcon = document.getElementById('welcomeIcon');
+            if (welcomeIcon) {
+                welcomeIcon.className = `nori-icon nori-xl ${noriClass} mx-auto mb-3`;
+                welcomeIcon.style.backgroundImage = `url('${imageUrl}')`;
+            }
+            
+            const typingIcon = document.getElementById('typingIcon');
+            if (typingIcon) {
+                typingIcon.className = `nori-icon ${noriClass}`;
+                typingIcon.style.backgroundImage = `url('${imageUrl}')`;
+            }
         }
 
         // 대화 초기화
@@ -722,16 +731,15 @@
             });
         }
 
-        // 추천 로드 - 원래대로 복구
         async function loadRecommendations() {
             const container = document.getElementById('recommendationsList');
             container.innerHTML = '<div class="text-center py-6"><div class="text-base text-gray-500 menu-font">추천 로딩 중...</div></div>';
             
             const defaultRecommendations = [
-                { question: "건강한 운동 방법을 알려주세요", category: "건강", icon: "nori-health", categoryKey: "health" },
-                { question: "제주도 여행 계획을 세워주세요", category: "여행", icon: "nori-travel", categoryKey: "travel" },
-                { question: "안전한 투자 방법은 무엇인가요?", category: "투자", icon: "nori-investment", categoryKey: "investment" },
-                { question: "계약서 작성시 주의사항을 알려주세요", category: "법률", icon: "nori-legal", categoryKey: "legal" }
+                { question: "건강한 운동 방법을 알려주세요", category: "건강", icon: "nori-health" },
+                { question: "제주도 여행 계획을 세워주세요", category: "여행", icon: "nori-travel" },
+                { question: "안전한 투자 방법은 무엇인가요?", category: "투자", icon: "nori-investment" },
+                { question: "계약서 작성시 주의사항을 알려주세요", category: "법률", icon: "nori-legal" }
             ];
             
             container.innerHTML = '';
@@ -747,25 +755,10 @@
                         </div>
                     </div>
                 `;
-                
-                // 클릭 시 자동으로 질문하고 답변 받기
-                recItem.onclick = async () => {
-                    // 1. 해당 카테고리로 전환
-                    setCategory(rec.categoryKey);
-                    
-                    // 2. 카테고리 탭으로 전환
+                recItem.onclick = () => {
+                    document.getElementById('messageInput').value = rec.question;
                     switchTab('categories');
-                    
-                    // 3. 입력창에 질문 설정
-                    const messageInput = document.getElementById('messageInput');
-                    messageInput.value = rec.question;
-                    
-                    // 4. 잠시 대기 후 자동 전송
-                    setTimeout(async () => {
-                        await sendMessage();
-                    }, 500);
                 };
-                
                 container.appendChild(recItem);
             });
         }
@@ -782,17 +775,11 @@
             }
         }
 
-        // sendMessage 함수 - 에러 처리 간소화
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
             if (!message) return;
-            
-            // 전송 버튼 비활성화
-            const sendButton = document.getElementById('sendButton');
-            sendButton.disabled = true;
-            sendButton.textContent = '전송 중...';
             
             addMessage(message, 'user');
             input.value = '';
@@ -828,10 +815,6 @@
             } catch (error) {
                 hideTypingIndicator();
                 addMessage('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'bot');
-            } finally {
-                // 전송 버튼 활성화
-                sendButton.disabled = false;
-                sendButton.textContent = '전송';
             }
         }
 
@@ -864,22 +847,85 @@
             document.getElementById('typingIndicator').classList.add('hidden');
         }
 
-        // 페이지 로드시 초기화 - 간소화
+        // 페이지 로드시 초기화
         window.onload = async function() {
+            console.log('🔍 노리 이미지 캐시 새로고침 중...');
+            
+            // 캐시 버스팅을 위한 타임스탬프 추가
+            const timestamp = Date.now();
+            const noriImages = [
+                { name: 'nori.png', desc: '기본 노리' },
+                { name: 'nori-health.png', desc: '건강 노리 (의사)' },
+                { name: 'nori-travel.png', desc: '여행 노리 (모자)' },
+                { name: 'nori-investment.png', desc: '투자 노리 (정장)' },
+                { name: 'nori-legal.png', desc: '법률 노리 (가운)' }
+            ];
+            
+            // 모든 노리 아이콘 요소들의 배경 이미지 강제 업데이트
+            document.querySelectorAll('.nori-icon').forEach(icon => {
+                const currentBg = getComputedStyle(icon).backgroundImage;
+                if (currentBg && currentBg !== 'none') {
+                    const newBg = currentBg.replace(/\?v=\d+/, '').replace('.png)', `.png?v=${timestamp}`);
+                    icon.style.backgroundImage = newBg;
+                }
+            });
+            
+            let loadedCount = 0;
+            
+            for (const img of noriImages) {
+                const testImg = new Image();
+                testImg.onload = function() {
+                    console.log(`✅ ${img.desc} 로딩 성공: ${img.name}`);
+                    loadedCount++;
+                    
+                    if (loadedCount === noriImages.length) {
+                        console.log('🎉 모든 노리 이미지 로딩 완료!');
+                        // 모든 노리 아이콘 강제 리렌더링
+                        forceNoriRefresh();
+                    }
+                };
+                testImg.onerror = function() {
+                    console.error(`❌ ${img.desc} 로딩 실패: ${img.name}`);
+                    console.log(`파일 경로 확인: /images/${img.name}`);
+                };
+                testImg.src = `./images/${img.name}?v=${timestamp}`;
+            }
+            
+            // 백엔드 연결 테스트
             try {
                 const response = await fetch(`${BACKEND_URL}/health`);
                 if (response.ok) {
                     console.log('백엔드 연결 성공');
-                } else {
-                    console.log('백엔드 연결 실패');
                 }
             } catch (error) {
-                console.log('백엔드 서버 연결 중...');
                 addMessage('백엔드 서버가 시작되고 있습니다. 잠시만 기다려주세요...', 'bot');
             }
             
             loadRecommendations();
         };
+        
+        // 노리 아이콘 강제 새로고침 함수
+        function forceNoriRefresh() {
+            const timestamp = Date.now();
+            const categoryMapping = {
+                'health': 'nori-health',
+                'travel': 'nori-travel', 
+                'investment': 'nori-investment',
+                'legal': 'nori-legal'
+            };
+            
+            // 모든 노리 아이콘 클래스 업데이트
+            Object.keys(categoryMapping).forEach(category => {
+                const className = categoryMapping[category];
+                const elements = document.querySelectorAll(`.${className}`);
+                elements.forEach(el => {
+                    el.style.backgroundImage = `url('./images/${className.replace('nori-', 'nori-')}.png?v=${timestamp}')`;
+                });
+            });
+            
+            // 현재 카테고리 노리 아이콘 즉시 업데이트
+            updateNoriIcons(currentCategory);
+        }
     </script>
 </body>
 </html>
