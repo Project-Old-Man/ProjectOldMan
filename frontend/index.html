@@ -3,35 +3,1008 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>꿀벌노리 - AI 추천 시스템</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>AI 놀이터 - 중장년층 커뮤니티</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 개구 폰트로 통일 -->
+    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 커스텀 폰트 설정 - 가독성 개선 */
+        body { 
+            font-family: 'Noto Sans KR', 'Gaegu', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #ffffff;
+            color: #1f2937;
+            font-size: 18px;
+            line-height: 1.6;
+        }
+        
+        /* 로고용 특별 폰트 */
+        .logo-font {
+            font-family: 'Gaegu', cursive;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        
+        /* 메뉴 폰트 - 가독성 좋은 Noto Sans KR */
+        .menu-font {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 500;
+        }
+        
+        /* 버튼 폰트 - 친근한 개구 */
+        .button-font {
+            font-family: 'Gaegu', cursive;
+            font-weight: 700;
+        }
+        
+        /* 메시지 폰트 - 읽기 전용은 Noto Sans KR */
+        .message-font {
+            font-family: 'Noto Sans KR', sans-serif;
+            font-weight: 400;
+        }
+        
+        /* 노리 아이콘들 - 크기 증가 */
+        .nori-icon {
+            width: 40px;
+            height: 40px;
+            background-image: url('./images/nori.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            flex-shrink: 0;
+            display: inline-block;
+            border: none;
+            background-color: transparent;
+        }
+        
+        /* 새로운 노리 이미지들 */
+        .nori-health { background-image: url('./images/nori-health.png?v=' + Date.now()); }
+        .nori-travel { background-image: url('./images/nori-travel.png?v=' + Date.now()); }
+        .nori-investment { background-image: url('./images/nori-investment.png?v=' + Date.now()); }
+        .nori-legal { background-image: url('./images/nori-legal.png?v=' + Date.now()); }
+        
+        .nori-large {
+            width: 64px;
+            height: 64px;
+        }
+        
+        .nori-xl {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .nori-header {
+            width: 60px;
+            height: 60px;
+        }
+        
+        /* 애니메이션 */
+        .chat-message {
+            animation: slideIn 0.2s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #6b7280;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.16s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.32s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* 레이아웃 - 크기 조정 */
+        .main-layout {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 320px;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        /* 입력 영역 정렬 개선 */
+        .input-area {
+            padding: 16px 24px;
+            border-top: 2px solid #e5e7eb;
+            background: white;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+        }
+
+        .input-wrapper {
+            flex: 1;
+        }
+
+        /* 탭 스타일 - 크기 조정 */
+        .tab-button {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 400;
+            transition: all 0.2s ease;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #1f2937;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            transform: translateY(-1px);
+            font-weight: 700;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #f3f4f6;
+            color: #374151;
+            transform: translateY(-1px);
+        }
+
+        /* 카테고리 버튼 - 크기 조정 */
+        .category-button {
+            width: 100%;
+            padding: 16px 20px;
+            border-radius: 16px;
+            text-align: left;
+            transition: all 0.2s ease;
+            background: white;
+            border: 2px solid #f3f4f6;
+            margin-bottom: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .category-button.active {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #fbbf24;
+            color: #92400e;
+            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .category-button:hover:not(.active) {
+            background: #f9fafb;
+            border-color: #e5e7eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* 카테고리 텍스트 크기 조정 */
+        .category-title {
+            font-weight: 700;
+            font-size: 18px;
+            line-height: 1.3;
+            margin-bottom: 3px;
+            color: inherit;
+        }
+
+        .category-description {
+            font-size: 13px;
+            line-height: 1.4;
+            color: #6b7280;
+            font-weight: 300;
+        }
+
+        /* 히스토리 및 추천 카드 - 크기 조정 */
+        .history-card,
+        .recommendation-card {
+            padding: 14px 16px;
+            background: white;
+            border-radius: 12px;
+            border: 2px solid #f3f4f6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .history-card:hover,
+        .recommendation-card:hover {
+            background: #fefce8;
+            border-color: #fde047;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(253, 224, 71, 0.2);
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 400;
+            line-height: 1.4;
+            margin-bottom: 3px;
+            color: #1f2937;
+        }
+
+        .card-meta {
+            font-size: 12px;
+            line-height: 1.3;
+            color: #6b7280;
+            font-weight: 300;
+        }
+
+        /* 메시지 스타일 - 크기 조정 */
+        .message-user {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            color: white;
+            margin-left: auto;
+            max-width: 70%;
+            padding: 14px 18px;
+            border-radius: 20px 20px 6px 20px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .message-bot {
+            background: white;
+            color: #1f2937;
+            margin-right: auto;
+            max-width: 70%;
+            padding: 14px 18px;
+            border-radius: 20px 20px 20px 6px;
+            border: 2px solid #f3f4f6;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        /* 입력창 스타일 개선 */
+        .message-input {
+            border-radius: 16px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            padding: 14px 18px;
+            line-height: 1.5;
+            width: 100%;
+            resize: none;
+            min-height: 48px;
+        }
+
+        .message-input:focus {
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.1);
+        }
+
+        /* 전송 버튼 정렬 개선 */
+        .send-button {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
+            transition: all 0.2s ease;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 14px 28px;
+            height: 48px;
+            min-width: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .send-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(251, 191, 36, 0.4);
+        }
+
+        /* 탭 네비게이션 컨테이너 */
+        .tab-navigation {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 20px;
+            gap: 2px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* 헤더 스타일 - 높이 더 줄이기 */
+        .main-header {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%);
+            border-bottom: 2px solid #f59e0b;
+            box-shadow: 0 2px 12px rgba(251, 191, 36, 0.15);
+        }
+
+        /* 환영 메시지 스타일 - 박스 높이 더 줄이기 */
+        .welcome-card {
+            background: linear-gradient(135deg, #ffffff 0%, #fefce8 100%);
+            border: 3px solid #fde047;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(253, 224, 71, 0.2);
+            padding: 16px 20px;
+            text-align: center;
+            max-width: 380px;
+        }
+
+        .welcome-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 6px;
+            line-height: 1.2;
+        }
+
+        .welcome-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            line-height: 1.4;
+            font-weight: 400;
+        }
+
+        /* 상단 버튼들 폰트 크기만 증가 */
+        .header-button {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            border: none;
+            cursor: pointer;
+        }
+
+        .header-button.delete {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .header-button.delete:hover {
+            background: #fee2e2;
+            transform: translateY(-1px);
+        }
+
+        .header-button.export {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .header-button.export:hover {
+            background: #dbeafe;
+            transform: translateY(-1px);
+        }
+
+        /* 추천 버튼 폰트 크기 증가 */
+        .recommendation-button {
+            font-size: 20px;
+            font-weight: 700;
+            padding: 14px 24px;
+            border-radius: 14px;
+            transition: all 0.2s ease;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <img src="logo.png" alt="꿀벌노리 로고" class="logo">
-        <h1>꿀벌노리</h1>
-        <p>AI와 함께하는 중장년층 커뮤니티</p>
-    </header>
-    <main>
-        <section id="query-section">
-            <h2>질문하기</h2>
-            <textarea id="query-input" placeholder="질문을 입력하세요..."></textarea>
-            <button id="query-button">질문하기</button>
-            <div id="query-response">
-                <h3>응답:</h3>
-                <p id="response-text">여기에 AI 응답이 표시됩니다.</p>
+    <div class="main-layout">
+        <!-- Header - 노리 제거하고 텍스트만 가운데 정렬 -->
+        <header class="main-header px-8 py-2">
+            <div class="flex items-center justify-center">
+                <h1 class="text-3xl font-bold text-amber-900 logo-font">AI 놀이터</h1>
             </div>
-        </section>
-        <section id="recommend-section">
-            <h2>추천 결과</h2>
-            <ul id="recommendation-list">
-                <!-- 추천 결과가 여기에 추가됩니다 -->
-            </ul>
-        </section>
-    </main>
-    <footer>
-        <p>© 2025 꿀벌노리. 모두의 AI 커뮤니티</p>
-    </footer>
-    <script src="scripts.js"></script>
+        </header>
+
+        <div class="content-area">
+            <!-- Sidebar - 가독성 개선 -->
+            <aside class="sidebar bg-gradient-to-b from-gray-50 to-gray-100 border-r-2 border-gray-200">
+                <div class="p-6">
+                    <!-- 탭 네비게이션 -->
+                    <div class="tab-navigation">
+                        <button onclick="switchTab('categories')" id="categoriesTab" 
+                                class="tab-button active flex-1 menu-font">카테고리</button>
+                        <button onclick="switchTab('history')" id="historyTab" 
+                                class="tab-button flex-1 menu-font">히스토리</button>
+                        <button onclick="switchTab('recommendations')" id="recommendationsTab" 
+                                class="tab-button flex-1 menu-font">추천</button>
+                    </div>
+
+                    <!-- 카테고리 탭 -->
+                    <div id="categoriesContent" class="tab-content">
+                        <div class="space-y-3">
+                            <button onclick="setCategory('health')" data-category="health" 
+                                    class="category-button active">
+                                <div class="flex items-center space-x-3">
+                                    <div class="nori-icon nori-health nori-large flex-shrink-0"></div>
+                                    <div class="category-content">
+                                        <div class="category-title menu-font font-bold">건강 상담</div>
+                                        <div class="category-description menu-font">건강 관리 및 의료 정보</div>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="setCategory('travel')" data-category="travel" 
+                                    class="category-button">
+                                <div class="flex items-center space-x-3">
+                                    <div class="nori-icon nori-travel nori-large flex-shrink-0"></div>
+                                    <div class="category-content">
+                                        <div class="category-title menu-font font-bold">여행 상담</div>
+                                        <div class="category-description menu-font">여행 계획 및 정보</div>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="setCategory('investment')" data-category="investment" 
+                                    class="category-button">
+                                <div class="flex items-center space-x-3">
+                                    <div class="nori-icon nori-investment nori-large flex-shrink-0"></div>
+                                    <div class="category-content">
+                                        <div class="category-title menu-font font-bold">투자 상담</div>
+                                        <div class="category-description menu-font">재테크 및 투자 정보</div>
+                                    </div>
+                                </div>
+                            </button>
+                            <button onclick="setCategory('legal')" data-category="legal" 
+                                    class="category-button">
+                                <div class="flex items-center space-x-3">
+                                    <div class="nori-icon nori-legal nori-large flex-shrink-0"></div>
+                                    <div class="category-content">
+                                        <div class="category-title menu-font font-bold">법률 상담</div>
+                                        <div class="category-description menu-font">법률 상담 및 정보</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 히스토리 탭 -->
+                    <div id="historyContent" class="tab-content hidden">
+                        <div class="text-lg text-gray-700 mb-5 font-semibold menu-font">최근 대화</div>
+                        <div id="chatHistory" class="space-y-2">
+                            <!-- 히스토리 항목들 -->
+                        </div>
+                    </div>
+
+                    <!-- 추천 탭 개선 -->
+                    <div id="recommendationsContent" class="tab-content hidden">
+                        <div class="text-lg text-gray-700 mb-5 font-semibold menu-font">추천 질문</div>
+                        <div id="recommendationsList" class="space-y-2">
+                            <!-- 추천 항목들 -->
+                        </div>
+                        <button onclick="loadRecommendations()" 
+                                class="recommendation-button w-full mt-5 bg-gradient-to-r from-yellow-200 to-yellow-300 text-yellow-900 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transition-all button-font shadow-md">
+                            새로운 추천 가져오기
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Chat -->
+            <main class="chat-container">
+                <!-- Chat Header - 버튼 크기 증가 -->
+                <div class="border-b-2 border-gray-200 bg-white px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div id="chatHeaderIcon" class="nori-icon nori-large nori-health"></div>
+                            <div>
+                                <h2 id="chatTitle" class="text-xl font-bold text-gray-900 menu-font">건강 상담</h2>
+                                <p id="chatSubtitle" class="text-base text-gray-600 mt-1 menu-font">건강에 관한 궁금한 점을 물어보세요</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <button onclick="clearChat()" 
+                                    class="header-button delete button-font">
+                                대화 초기화
+                            </button>
+                            <button onclick="exportChat()" 
+                                    class="header-button export button-font">
+                                내보내기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages -->
+                <div id="messagesContainer" class="messages-container">
+                    <!-- Welcome Message - 박스 높이 더 줄이기 -->
+                    <div class="flex justify-center mb-6">
+                        <div class="welcome-card">
+                            <div id="welcomeIcon" class="nori-icon nori-xl nori-health mx-auto mb-3"></div>
+                            <h3 class="welcome-title logo-font">AI 놀이터에 오신 것을 환영합니다!</h3>
+                            <p class="welcome-subtitle menu-font">궁금한 것이 있으시면 언제든 물어보세요. 노리가 도와드릴게요!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="hidden px-6 pb-4">
+                    <div class="flex">
+                        <div class="message-bot flex items-center space-x-3">
+                            <div id="typingIcon" class="nori-icon nori-health"></div>
+                            <div class="typing-indicator">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                            <span class="text-sm text-gray-600 menu-font">노리가 답변을 생각하고 있어요...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area - 정렬 개선 -->
+                <div class="input-area bg-gradient-to-r from-gray-50 to-gray-100">
+                    <div class="input-container">
+                        <div class="input-wrapper">
+                            <textarea
+                                id="messageInput"
+                                placeholder="메시지를 입력하세요..."
+                                rows="1"
+                                class="message-input message-font"
+                                onkeypress="handleKeyPress(event)"
+                                oninput="autoResize(this)"
+                            ></textarea>
+                        </div>
+                        <button
+                            onclick="sendMessage()"
+                            id="sendButton"
+                            class="send-button text-white button-font"
+                        >
+                            전송
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let currentCategory = 'health';
+        let currentTab = 'categories';
+        let chatHistory = [];
+        
+        const BACKEND_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:8000' 
+            : 'http://localhost:8000';
+
+        const categoryInfo = {
+            health: { title: '건강 상담', subtitle: '건강에 관한 궁금한 점을 물어보세요' },
+            travel: { title: '여행 상담', subtitle: '여행 계획과 정보를 도와드려요' },
+            investment: { title: '투자 상담', subtitle: '재테크 정보를 제공해요' },
+            legal: { title: '법률 상담', subtitle: '법률 관련 궁금증을 해결해드려요' }
+        };
+
+        // 탭 전환
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // 탭 버튼 스타일 업데이트
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // 탭 컨텐츠 표시/숨김
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(tabName + 'Content').classList.remove('hidden');
+            
+            if (tabName === 'history') loadChatHistory();
+            else if (tabName === 'recommendations') loadRecommendations();
+        }
+
+        // 카테고리 변경
+        function setCategory(category) {
+            currentCategory = category;
+            
+            // 카테고리 버튼 스타일 업데이트
+            document.querySelectorAll('.category-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-category="${category}"]`).classList.add('active');
+            
+            // 헤더 업데이트
+            document.getElementById('chatTitle').textContent = categoryInfo[category].title;
+            document.getElementById('chatSubtitle').textContent = categoryInfo[category].subtitle;
+            
+            // 노리 아이콘 업데이트 (강제 새로고침)
+            setTimeout(() => updateNoriIcons(category), 100);
+        }
+
+        // 노리 아이콘 업데이트 - 새로운 여백 반영
+        function updateNoriIcons(category) {
+            const timestamp = Date.now();
+            const noriClass = `nori-${category}`;
+            
+            // 캐시 버스팅이 포함된 이미지 URL
+            const imageUrl = `./images/nori-${category}.png?v=${timestamp}`;
+            
+            const chatHeaderIcon = document.getElementById('chatHeaderIcon');
+            if (chatHeaderIcon) {
+                chatHeaderIcon.className = `nori-icon nori-large ${noriClass}`;
+                chatHeaderIcon.style.backgroundImage = `url('${imageUrl}')`;
+            }
+            
+            const welcomeIcon = document.getElementById('welcomeIcon');
+            if (welcomeIcon) {
+                welcomeIcon.className = `nori-icon nori-xl ${noriClass} mx-auto mb-3`;
+                welcomeIcon.style.backgroundImage = `url('${imageUrl}')`;
+            }
+            
+            const typingIcon = document.getElementById('typingIcon');
+            if (typingIcon) {
+                typingIcon.className = `nori-icon ${noriClass}`;
+                typingIcon.style.backgroundImage = `url('${imageUrl}')`;
+            }
+        }
+
+        // 대화 초기화
+        function clearChat() {
+            if (confirm('대화를 모두 삭제하시겠습니까?')) {
+                document.getElementById('messagesContainer').innerHTML = `
+                    <div class="flex justify-center mb-6">
+                        <div class="welcome-card">
+                            <div id="welcomeIcon" class="nori-icon nori-xl nori-${currentCategory} mx-auto mb-3"></div>
+                            <h3 class="welcome-title logo-font">새로운 대화를 시작하세요!</h3>
+                            <p class="welcome-subtitle menu-font">궁금한 것이 있으시면 언제든 물어보세요. 노리가 도와드릴게요!</p>
+                        </div>
+                    </div>
+                `;
+                chatHistory = [];
+            }
+        }
+
+        // 대화 내보내기
+        function exportChat() {
+            const messages = document.querySelectorAll('.chat-message');
+            let exportText = `AI 놀이터 대화 내역\n날짜: ${new Date().toLocaleDateString()}\n카테고리: ${categoryInfo[currentCategory].title}\n\n`;
+            
+            messages.forEach(msg => {
+                const text = msg.textContent.trim();
+                const isUser = msg.querySelector('.message-user');
+                const sender = isUser ? '사용자' : 'AI';
+                exportText += `${sender}: ${text}\n\n`;
+            });
+            
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `AI놀이터_대화내역_${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 히스토리 로드
+        function loadChatHistory() {
+            const historyContainer = document.getElementById('chatHistory');
+            historyContainer.innerHTML = '';
+            
+            if (chatHistory.length === 0) {
+                historyContainer.innerHTML = '<p class="text-gray-500 text-center py-6 text-base menu-font">아직 대화 기록이 없습니다.</p>';
+                return;
+            }
+            
+            chatHistory.slice(-10).reverse().forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-card';
+                
+                let noriClass = 'nori-icon';
+                if (item.category.includes('건강')) noriClass += ' nori-health';
+                else if (item.category.includes('여행')) noriClass += ' nori-travel';
+                else if (item.category.includes('투자')) noriClass += ' nori-investment';
+                else if (item.category.includes('법률')) noriClass += ' nori-legal';
+                
+                historyItem.innerHTML = `
+                    <div class="flex items-start space-x-2">
+                        <div class="${noriClass} flex-shrink-0"></div>
+                        <div class="card-content">
+                            <div class="card-title menu-font font-medium">${item.question}</div>
+                            <div class="card-meta menu-font">${item.category} • ${item.time}</div>
+                        </div>
+                    </div>
+                `;
+                historyItem.onclick = () => {
+                    document.getElementById('messageInput').value = item.question;
+                    switchTab('categories');
+                };
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
+        // 추천 로드 - 각 질문에 맞는 노리와 자동 질문 기능 추가
+        async function loadRecommendations() {
+            showLoadingRecommendations();
+            
+            // 약간의 지연으로 더 자연스러운 로딩 효과
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            const container = document.getElementById('recommendationsList');
+            
+            const defaultRecommendations = [
+                { 
+                    question: "건강한 운동 방법을 알려주세요", 
+                    category: "건강", 
+                    icon: "nori-health",
+                    categoryKey: "health"
+                },
+                { 
+                    question: "제주도 여행 계획을 세워주세요", 
+                    category: "여행", 
+                    icon: "nori-travel",
+                    categoryKey: "travel"
+                },
+                { 
+                    question: "안전한 투자 방법은 무엇인가요?", 
+                    category: "투자", 
+                    icon: "nori-investment",
+                    categoryKey: "investment"
+                },
+                { 
+                    question: "계약서 작성시 주의사항을 알려주세요", 
+                    category: "법률", 
+                    icon: "nori-legal",
+                    categoryKey: "legal"
+                }
+            ];
+            
+            container.innerHTML = '';
+            defaultRecommendations.forEach((rec, index) => {
+                const recItem = document.createElement('div');
+                recItem.className = 'recommendation-card';
+                recItem.style.animationDelay = `${index * 0.1}s`;
+                recItem.innerHTML = `
+                    <div class="flex items-start space-x-2">
+                        <div class="nori-icon ${rec.icon} flex-shrink-0"></div>
+                        <div class="card-content">
+                            <div class="card-title menu-font font-medium">${rec.question}</div>
+                            <div class="card-meta menu-font">${rec.category}</div>
+                        </div>
+                    </div>
+                `;
+                
+                // 클릭 시 자동으로 질문하고 답변 받기
+                recItem.onclick = async () => {
+                    // 1. 해당 카테고리로 전환
+                    setCategory(rec.categoryKey);
+                    
+                    // 2. 카테고리 탭으로 전환
+                    switchTab('categories');
+                    
+                    // 3. 입력창에 질문 설정
+                    const messageInput = document.getElementById('messageInput');
+                    messageInput.value = rec.question;
+                    
+                    // 4. 잠시 대기 후 자동 전송
+                    setTimeout(async () => {
+                        await sendMessage();
+                    }, 500);
+                };
+                
+                container.appendChild(recItem);
+            });
+            
+            // 호버 효과 설정
+            setupRecommendationHover();
+        }
+
+        // 자동 크기 조정
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // sendMessage 함수 개선 - 디버깅 추가
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            console.log('📤 메시지 전송 시작:', message);
+            
+            // 전송 버튼 비활성화
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.textContent = '전송 중...';
+            
+            addMessage(message, 'user');
+            input.value = '';
+            input.style.height = 'auto';
+            
+            chatHistory.push({
+                question: message,
+                category: categoryInfo[currentCategory].title,
+                time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+            });
+            
+            showTypingIndicator();
+            
+            try {
+                console.log('🔗 백엔드 요청 시작:', BACKEND_URL);
+                
+                const requestData = {
+                    question: message,
+                    user_id: 'user_' + Date.now(),
+                    context: { 
+                        page: currentCategory, 
+                        timestamp: new Date().toISOString() 
+                    }
+                };
+                
+                console.log('📋 요청 데이터:', requestData);
+                
+                const response = await fetch(`${BACKEND_URL}/query`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                console.log('📥 응답 상태:', response.status);
+                
+                hideTypingIndicator();
+
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ 응답 데이터:', data);
+                    addMessage(data.response, 'bot');
+                } else {
+                    console.error('❌ 응답 에러:', response.status, response.statusText);
+                    const errorText = await response.text();
+                    console.error('에러 내용:', errorText);
+                    addMessage('죄송합니다. 서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'bot');
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                console.error('🚨 네트워크 에러:', error);
+                
+                // 더 구체적인 에러 메시지
+                let errorMessage = '네트워크 오류가 발생했습니다.';
+                if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                    errorMessage = '백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.';
+                }
+                
+                addMessage(errorMessage, 'bot');
+            } finally {
+                // 전송 버튼 활성화
+                sendButton.disabled = false;
+                sendButton.textContent = '전송';
+            }
+        }
+
+        // 백엔드 연결 테스트 함수 개선
+        async function testBackendConnection() {
+            console.log('🔍 백엔드 연결 테스트 시작...');
+            try {
+                const response = await fetch(`${BACKEND_URL}/health`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ 백엔드 연결 성공:', data);
+                    return true;
+                } else {
+                    console.error('❌ 백엔드 상태 확인 실패:', response.status);
+                    return false;
+                }
+            } catch (error) {
+                console.error('🚨 백엔드 연결 실패:', error);
+                return false;
+            }
+        }
+
+        // 페이지 로드시 초기화 - 연결 테스트 추가
+        window.onload = async function() {
+            console.log('🚀 페이지 로드 시작');
+            
+            // 백엔드 연결 테스트
+            const isConnected = await testBackendConnection();
+            if (!isConnected) {
+                addMessage('⚠️ 백엔드 서버에 연결할 수 없습니다. Docker 컨테이너가 실행 중인지 확인해주세요.', 'bot');
+                console.log('🐳 Docker 상태 확인: docker-compose ps');
+                console.log('🔄 백엔드 재시작: docker-compose restart backend');
+            }
+            
+            // 노리 이미지 로딩
+            const timestamp = Date.now();
+            const noriImages = [
+                { name: 'nori.png', desc: '기본 노리' },
+                { name: 'nori-health.png', desc: '건강 노리 (의사)' },
+                { name: 'nori-travel.png', desc: '여행 노리 (모자)' },
+                { name: 'nori-investment.png', desc: '투자 노리 (정장)' },
+                { name: 'nori-legal.png', desc: '법률 노리 (가운)' }
+            ];
+            
+            // 모든 노리 아이콘 요소들의 배경 이미지 강제 업데이트
+            document.querySelectorAll('.nori-icon').forEach(icon => {
+                const currentBg = getComputedStyle(icon).backgroundImage;
+                if (currentBg && currentBg !== 'none') {
+                    const newBg = currentBg.replace(/\?v=\d+/, '').replace('.png)', `.png?v=${timestamp})`;
+                    icon.style.backgroundImage = newBg;
+                }
+            });
+            
+            let loadedCount = 0;
+            
+            for (const img of noriImages) {
+                const testImg = new Image();
+                testImg.onload = function() {
+                    console.log(`✅ ${img.desc} 로딩 성공: ${img.name}`);
+                    loadedCount++;
+                    
+                    if (loadedCount === noriImages.length) {
+                        console.log('🎉 모든 노리 이미지 로딩 완료!');
+                        forceNoriRefresh();
+                    }
+                };
+                testImg.onerror = function() {
+                    console.error(`❌ ${img.desc} 로딩 실패: ${img.name}`);
+                };
+                testImg.src = `./images/${img.name}?v=${timestamp}`;
+            }
+            
+            loadRecommendations();
+        };
+
+        // 노리 아이콘 강제 새로고침 함수
+        function forceNoriRefresh() {
+            const timestamp = Date.now();
+            const categoryMapping = {
+                'health': 'nori-health',
+                'travel': 'nori-travel', 
+                'investment': 'nori-investment',
+                'legal': 'nori-legal'
+            };
+            
+            // 모든 노리 아이콘 클래스 업데이트
+            Object.keys(categoryMapping).forEach(category => {
+                const className = categoryMapping[category];
+                const elements = document.querySelectorAll(`.${className}`);
+                elements.forEach(el => {
+                    el.style.backgroundImage = `url('./images/${className.replace('nori-', 'nori-')}.png?v=${timestamp}')`;
+                });
+            });
+            
+            // 현재 카테고리 노리 아이콘 즉시 업데이트
+            updateNoriIcons(currentCategory);
+        }
+    </script>
 </body>
 </html>

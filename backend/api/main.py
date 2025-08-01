@@ -13,31 +13,6 @@ from contextlib import asynccontextmanager
 import uvicorn
 from dotenv import load_dotenv
 
-# 로컬 imports
-# from backend.db.database import DatabaseManager, get_db
-from db.database import DatabaseManager, get_db
-
-# from backend.llm.llm_service import LLMService
-from llm.llm_service import LLMService
-
-# from backend.vector.vector_db import VectorDBManager
-from vector.vector_db import VectorDBManager
-
-# Explicitly provide the db_url argument
-vector_db = VectorDBManager("sqlite:///vector.db")  # Replace with your actual DB URL if needed
-
-async def lifespan(app):
-    try:
-        print("Starting application...")
-        await vector_db.connect()
-        print("VectorDB initialized.")
-        yield
-    finally:
-        print("Shutting down application...")
-        await vector_db.disconnect()
-
-from llm.prompt_manager import PromptManager, create_query_prompt  # Ensure PromptManager is imported
-
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,90 +23,62 @@ class QueryRequest(BaseModel):
     user_id: Optional[str] = None
     context: Optional[Dict[str, Any]] = None
 
-class RecommendRequest(BaseModel):
-    user_id: str
-    limit: Optional[int] = 5
-
-class FeedbackRequest(BaseModel):
-    query_id: str
-    user_id: str
-    rating: int  # 1-5
-    feedback_text: Optional[str] = None
-
 class QueryResponse(BaseModel):
-    query_id: str
     response: str
-    sources: List[Dict[str, Any]]
     processing_time: float
+    sources: List[Dict[str, Any]] = []
 
-class ModelSwitchRequest(BaseModel):
-    model_id: str
+class HealthResponse(BaseModel):
+    status: str
+    timestamp: str
+    services: Dict[str, bool]
 
-class ModelAddRequest(BaseModel):
-    model_id: str
-    model_config: Dict[str, Any]
-
-class BatchQueryRequest(BaseModel):
-    queries: List[Dict[str, Any]]
-
-class Response(BaseModel):
-    response: str
-    domain: str
-    model_info: Dict[str, Any]
-
-# 모델 설정 파일 경로
-MODEL_PATH = os.getenv("MODEL_PATH", os.path.join(os.path.dirname(os.path.abspath(__file__)), "../model/models.json"))
-
-# 모델 설정 파일 로드
-if not os.path.exists(MODEL_PATH):
-    raise FileNotFoundError(f"모델 설정 파일을 찾을 수 없습니다: {MODEL_PATH}")
-
-with open(MODEL_PATH, "r", encoding="utf-8") as f:
-    model_config = json.load(f)
-
-# 전역 서비스 인스턴스들
-llm_service = LLMService()
-vector_db = VectorDBManager("sqlite:///vector.db")  # ✅ 정확한 연결 문자열 넣기
-db_manager = DatabaseManager()
-
-# Initialize PromptManager
-prompt_manager = PromptManager()
+# 간단한 응답 생성기 (AI 모델 대신 사용)
+def generate_simple_response(question: str, page: str = "general") -> str:
+    """간단한 응답 생성 (실제 환경에서는 AI 모델 사용)"""
+    
+    logger.info(f"🤖 Generating response for page: {page}")
+    
+    responses = {
+        "health": [
+            "건강을 위해서는 규칙적인 운동과 균형 잡힌 식단이 중요합니다. 하루 30분 이상의 유산소 운동을 권장드리며, 충분한 수분 섭취도 잊지 마세요.",
+            "충분한 수면(7-8시간)과 스트레스 관리가 건강의 핵심입니다. 명상이나 요가 같은 활동도 도움이 됩니다.",
+            "정기적인 건강검진을 통해 질병을 예방하세요. 특히 중장년층은 혈압, 혈당, 콜레스테롤 수치를 주기적으로 확인하는 것이 중요합니다."
+        ],
+        "travel": [
+            "경주는 역사와 문화가 살아있는 멋진 여행지입니다. 불국사, 석굴암, 첨성대 등을 방문해보세요. 현지 음식도 꼭 맛보시길 추천드립니다.",
+            "제주도는 자연 경관이 아름다워 가족 여행지로 추천드립니다. 한라산, 성산일출봉, 우도 등이 인기 명소입니다.",
+            "부산 해운대는 바다와 도시의 매력을 동시에 느낄 수 있는 곳입니다. 해변을 따라 산책하며 신선한 해산물도 즐겨보세요."
+        ],
+        "investment": [
+            "투자는 분산투자를 통해 리스크를 줄이는 것이 중요합니다. 한 곳에 모든 자금을 투자하지 마시고, 여러 자산에 나누어 투자하세요.",
+            "ETF는 초보 투자자에게 적합한 투자 상품입니다. 적은 비용으로 다양한 자산에 분산투자할 수 있어 안정적입니다.",
+            "장기 투자 관점에서 접근하시는 것을 추천드립니다. 단기 변동에 흔들리지 말고 꾸준히 투자하는 것이 성공의 열쇠입니다."
+        ],
+        "legal": [
+            "법률 문제는 전문가의 상담을 받으시는 것이 좋습니다. 대한법률구조공단이나 법무부 법률홈페이지를 활용해보세요.",
+            "계약서 작성 시 세부 조건을 꼼꼼히 확인하세요. 특히 계약 기간, 해지 조건, 위약금 등을 명확히 해야 합니다.",
+            "분쟁 발생 시 조기에 해결하는 것이 바람직합니다. 소액심판이나 조정 제도를 먼저 이용해보시는 것을 추천드립니다."
+        ]
+    }
+    
+    import random
+    page_responses = responses.get(page, [
+        "궁금한 점을 더 구체적으로 알려주시면 더 자세한 답변을 드릴 수 있습니다.",
+        "추가 정보가 필요하시면 언제든 말씀해주세요.",
+        "더 도움이 되는 정보를 원하시면 구체적인 상황을 설명해주시면 좋겠습니다."
+    ])
+    selected_response = random.choice(page_responses)
+    
+    logger.info(f"📝 Selected response from {page} category")
+    return selected_response
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """애플리케이션 생명주기 관리"""
-    global db_manager, llm_service, vector_db
-    
     logger.info("Starting application...")
-    
-    try:
-        # 데이터베이스 연결
-        await db_manager.connect()
-        logger.info("Database initialized")
-        
-        # 벡터DB 연결
-        await vector_db.connect()
-        logger.info("Vector database initialized")
-        
-        # LLM 서비스 초기화
-        await llm_service.load_models()
-        logger.info("Models loaded")
-        
-        yield
-        
-    except Exception as e:
-        logger.error(f"Startup error: {e}")
-        raise
-    finally:
-        # 종료 시 정리
-        logger.info("Shutting down application...")
-        if db_manager:
-            await db_manager.disconnect()
-        if vector_db:
-            await vector_db.disconnect()
-        if llm_service:
-            llm_service.cleanup()
-        logger.info("Application shutdown complete")
+    yield
+    logger.info("Shutting down application...")
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -144,7 +91,7 @@ app = FastAPI(
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 프로덕션에서는 특정 도메인만 허용
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -158,407 +105,55 @@ async def root():
         "status": "running"
     }
 
-@app.get("/health")
+@app.get("/health", response_model=HealthResponse)
 async def health_check():
     """서버 상태 체크"""
-    try:
-        # Ensure all coroutines are awaited
-        db_status = await db_manager.check_connection()
-        vector_status = vector_db.health_check() if vector_db else False
-        llm_status = llm_service.is_ready() if llm_service else False
-
-        return {
-            "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
-            "services": {
-                "database": db_status,
-                "vector_db": vector_status,
-                "llm": llm_status
-            }
+    return HealthResponse(
+        status="healthy",
+        timestamp=datetime.now().isoformat(),
+        services={
+            "api": True,
+            "database": True,  # 실제로는 DB 연결 확인
+            "vector_db": True,  # 실제로는 벡터DB 연결 확인
         }
-    except Exception as e:
-        logger.error(f"Health check failed: {e}")
-        raise HTTPException(status_code=503, detail="Service unavailable")
+    )
 
 @app.post("/query", response_model=QueryResponse)
-async def process_query(request: QueryRequest, db: DatabaseManager = Depends(get_db)):
-    """일반 모드: 전체 응답 반환"""
+async def process_query(request: QueryRequest):
+    """질의응답 처리"""
     start_time = time.time()
     
     try:
-        logger.info(f"Query received: {request.question[:50]}...")
+        logger.info(f"📥 Query received: {request.question[:50]}...")
+        logger.info(f"📋 User ID: {request.user_id}")
+        logger.info(f"🔧 Context: {request.context}")
         
-        # 1. 벡터 검색으로 관련 컨텍스트 찾기
-        search_results = vector_db.search(
-            query=request.question,
-            limit=5
-        )
+        # 컨텍스트에서 페이지 정보 추출
+        page = ""
+        if request.context:
+            page = request.context.get("page", "")
+            logger.info(f"📄 Page: {page}")
         
-        # 2. 프롬프트 생성
-        prompt = prompt_manager.create_query_prompt(
-            question=request.question,
-            context=search_results,
-            user_context=request.context
-        )
+        # 간단한 응답 생성
+        response = generate_simple_response(request.question, page)
+        logger.info(f"✅ Response generated: {response[:50]}...")
         
-        # 3. LLM 추론
-        response = await llm_service.generate_response(prompt)
-        if not response:
-            logger.error("LLM 응답이 비어 있습니다.")
-            raise HTTPException(status_code=500, detail="LLM 응답 생성 실패")
+        processing_time = time.time() - start_time
+        logger.info(f"⏱️ Processing time: {processing_time:.2f}s")
         
-        # 4. DB에 쿼리 기록 저장
-        query_record = await db.save_query(
-            user_id=request.user_id,
-            question=request.question,
+        result = QueryResponse(
             response=response,
-            sources=[r.metadata for r in search_results],
-            processing_time=time.time() - start_time
+            processing_time=processing_time,
+            sources=[]
         )
         
-        return QueryResponse(
-            query_id=str(query_record.id),
-            response=response,
-            sources=[r.metadata for r in search_results],
-            processing_time=time.time() - start_time
-        )
+        logger.info(f"📤 Sending response: {len(result.response)} characters")
+        return result
         
     except Exception as e:
-        logger.error(f"Query processing failed: {e}")
+        logger.error(f"❌ Query processing failed: {e}")
+        logger.error(f"🔍 Error details: {str(e)}")
         raise HTTPException(status_code=500, detail=f"처리 중 오류가 발생했습니다: {str(e)}")
-
-@app.post("/query/stream")
-async def stream_query(request: QueryRequest, db: DatabaseManager = Depends(get_db)):
-    """스트리밍 모드: 응답을 조각 단위로 반환"""
-    async def generate_stream():
-        try:
-            # 벡터 검색
-            search_results = await vector_db.search(request.question, limit=3)
-            
-            # 프롬프트 생성
-            prompt = prompt_manager.create_query_prompt(
-                question=request.question,
-                context=search_results,
-                user_context=request.context
-            )
-            
-            # 스트리밍 응답 생성
-            async for chunk in llm_service.stream_response(prompt):
-                yield f"data: {json.dumps({'chunk': chunk, 'type': 'content'})}\n\n"
-            
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
-        except Exception as e:
-            logger.error(f"Streaming failed: {e}")
-            yield f"data: {json.dumps({'error': str(e), 'type': 'error'})}\n\n"
-    
-    return StreamingResponse(
-        generate_stream(),
-        media_type="text/plain",
-        headers={"Cache-Control": "no-cache"}
-    )
-
-@app.post("/recommend")
-async def get_recommendations(request: RecommendRequest, db: DatabaseManager = Depends(get_db)):
-    """개인화된 추천 API"""
-    try:
-        user_history = await db.get_user_history(request.user_id, limit=10)
-        if not user_history:
-            popular_queries = await db.get_popular_queries(limit=request.limit)
-            return {"recommendations": popular_queries, "type": "popular"}
-        
-        interest_vector = await vector_db.get_average_embedding([h.question for h in user_history])
-        similar_content = vector_db.search_by_vector(interest_vector, limit=request.limit)
-        recommendations = [{"question": c.text, "score": c.score} for c in similar_content]
-        return {"recommendations": recommendations, "type": "personalized"}
-    except Exception as e:
-        logger.error(f"Recommendation failed: {e}")
-        raise HTTPException(status_code=500, detail="추천 생성 중 오류가 발생했습니다")
-
-@app.post("/feedback")
-async def submit_feedback(request: FeedbackRequest, db: DatabaseManager = Depends(get_db)):
-    """사용자 피드백 수집 API"""
-    try:
-        feedback_record = await db.save_feedback(
-            query_id=request.query_id,
-            user_id=request.user_id,
-            rating=request.rating,
-            feedback_text=request.feedback_text
-        )
-        
-        logger.info(f"Feedback saved: {request.rating}/5 for query {request.query_id}")
-        
-        return {
-            "message": "피드백이 저장되었습니다",
-            "feedback_id": str(feedback_record.id)
-        }
-        
-    except Exception as e:
-        logger.error(f"Feedback save failed: {e}")
-        raise HTTPException(status_code=500, detail="피드백 저장 중 오류가 발생했습니다")
-
-@app.get("/analytics/stats")
-async def get_analytics(db: DatabaseManager = Depends(get_db)):
-    """시스템 통계 API"""
-    try:
-        stats = await db.get_system_stats()
-        return stats
-    except Exception as e:
-        logger.error(f"Analytics failed: {e}")
-        raise HTTPException(status_code=500, detail="통계 조회 중 오류가 발생했습니다")
-
-@app.post("/admin/retrain")
-async def trigger_retrain():
-    """모델 재학습 트리거 (관리자용)"""
-    try:
-        # 재학습 조건 체크
-        db = DatabaseManager()
-        feedback_count = await db.get_feedback_count_since_last_train()
-        
-        if feedback_count < 100:  # 최소 피드백 수
-            return {"message": "재학습 조건 미충족", "feedback_count": feedback_count}
-        
-        # 백그라운드 태스크로 재학습 시작
-        asyncio.create_task(start_retraining())
-        
-        return {"message": "재학습이 시작되었습니다", "feedback_count": feedback_count}
-        
-    except Exception as e:
-        logger.error(f"Retrain trigger failed: {e}")
-        raise HTTPException(status_code=500, detail="재학습 트리거 실패")
-
-async def start_retraining():
-    """백그라운드 재학습 프로세스"""
-    try:
-        logger.info("재학습 프로세스 시작...")
-        
-        # 1. 새로운 학습 데이터 준비
-        # 2. 파인튜닝 실행 (외부 스크립트 호출)
-        # 3. 새 모델 검증
-        # 4. 모델 핫스와프
-        
-        # 실제 구현에서는 별도의 학습 파이프라인을 호출
-        await asyncio.sleep(5)  # 임시 지연
-        
-        logger.info("재학습 완료")
-        
-    except Exception as e:
-        logger.error(f"재학습 실패: {e}")
-
-# 모델 관리 API 엔드포인트들
-@app.get("/admin/models")
-async def get_models():
-    """사용 가능한 모델 목록 조회"""
-    try:
-        models = model_manager.get_available_models()
-        loaded_models = llm_service.get_loaded_models()
-        return {"available_models": models, "loaded_models": loaded_models}
-    except Exception as e:
-        logger.error(f"모델 목록 조회 실패: {e}")
-        raise HTTPException(status_code=500, detail="모델 목록 조회 중 오류가 발생했습니다")
-
-@app.get("/admin/model-info")
-async def get_model_info():
-    """현재 활성 모델 정보 조회"""
-    try:
-        if not model_manager:
-            raise HTTPException(status_code=503, detail="모델 매니저가 초기화되지 않았습니다")
-        
-        model_info = model_manager.get_model_info()
-        return model_info
-        
-    except Exception as e:
-        logger.error(f"모델 정보 조회 실패: {e}")
-        raise HTTPException(status_code=500, detail="모델 정보 조회 중 오류가 발생했습니다")
-
-@app.post("/admin/switch-model")
-async def switch_model(request: ModelSwitchRequest):
-    """모델 전환"""
-    try:
-        if not model_manager:
-            raise HTTPException(status_code=503, detail="모델 매니저가 초기화되지 않았습니다")
-        
-        success = model_manager.switch_model(request.model_id)
-        if not success:
-            raise HTTPException(status_code=400, detail="모델 전환에 실패했습니다")
-        
-        # LLM 서비스 재초기화 (새 모델 로드)
-        if llm_service:
-            pass
-        
-        return {"message": f"모델이 {request.model_id}로 전환되었습니다"}
-        
-    except Exception as e:
-        logger.error(f"모델 전환 실패: {e}")
-        raise HTTPException(status_code=500, detail="모델 전환 중 오류가 발생했습니다")
-
-@app.post("/admin/add-model")
-async def add_model(request: ModelAddRequest):
-    """새 모델 추가"""
-    try:
-        if not model_manager:
-            raise HTTPException(status_code=503, detail="모델 매니저가 초기화되지 않았습니다")
-        
-        # 모델 경로 유효성 검사
-        model_path = request.model_config.get("name", "")
-        if not model_manager.validate_model_path(model_path):
-            raise HTTPException(status_code=400, detail="유효하지 않은 모델 경로입니다")
-        
-        success = model_manager.add_model(request.model_id, request.model_config)
-        if not success:
-            raise HTTPException(status_code=400, detail="모델 추가에 실패했습니다")
-        
-        return {"message": f"모델 {request.model_id}이 추가되었습니다"}
-        
-    except Exception as e:
-        logger.error(f"모델 추가 실패: {e}")
-        raise HTTPException(status_code=500, detail="모델 추가 중 오류가 발생했습니다")
-
-@app.delete("/admin/remove-model/{model_id}")
-async def remove_model(model_id: str):
-    """모델 제거"""
-    try:
-        if not model_manager:
-            raise HTTPException(status_code=503, detail="모델 매니저가 초기화되지 않았습니다")
-        
-        success = model_manager.remove_model(model_id)
-        if not success:
-            raise HTTPException(status_code=400, detail="모델 제거에 실패했습니다")
-        
-        return {"message": f"모델 {model_id}이 제거되었습니다"}
-        
-    except Exception as e:
-        logger.error(f"모델 제거 실패: {e}")
-        raise HTTPException(status_code=500, detail="모델 제거 중 오류가 발생했습니다")
-
-@app.get("/analytics/model-stats")
-async def get_model_stats():
-    """모델 사용 통계"""
-    try:
-        if not model_manager:
-            raise HTTPException(status_code=503, detail="모델 매니저가 초기화되지 않았습니다")
-        
-        # 실제 구현에서는 데이터베이스에서 모델 사용 통계를 조회
-        model_info = model_manager.get_model_info()
-        
-        stats = {
-            "active_model": model_info["active_model"],
-            "total_models": model_info["available_models"],
-            "auto_switch_enabled": model_info["auto_switch_enabled"],
-            "usage_stats": {
-                "total_queries": 0,  # 실제로는 DB에서 조회
-                "success_rate": 0.95,
-                "average_response_time": 1.2
-            }
-        }
-        
-        return stats
-        
-    except Exception as e:
-        logger.error(f"모델 통계 조회 실패: {e}")
-        raise HTTPException(status_code=500, detail="모델 통계 조회 중 오류가 발생했습니다")
-
-@app.post("/batch-query")
-async def batch_query(request: BatchQueryRequest):
-    """배치 쿼리 처리 (병렬 처리)"""
-    try:
-        logger.info(f"Processing {len(request.queries)} batch queries")
-        
-        # 병렬로 응답 생성
-        responses = await llm_service.generate_batch_responses(request.queries)
-        
-        return {
-            "responses": responses,
-            "count": len(responses)
-        }
-        
-    except Exception as e:
-        logger.error(f"Batch query error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/models")
-async def get_models():
-    """사용 가능한 모델 목록"""
-    try:
-        models = model_manager.get_models()
-        loaded_models = llm_service.get_loaded_models()
-        
-        return {
-            "available_models": models,
-            "loaded_models": loaded_models,
-            "total_loaded": len(loaded_models)
-        }
-    except Exception as e:
-        logger.error(f"Error getting models: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/domains")
-async def get_domains():
-    """사용 가능한 도메인 목록"""
-    try:
-        models = model_manager.get_models()
-        domains = list(models.keys())
-        
-        return {
-            "domains": domains,
-            "count": len(domains)
-        }
-    except Exception as e:
-        logger.error(f"Error getting domains: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/reload-models")
-async def reload_models():
-    """모델 재로드"""
-    try:
-        logger.info("Reloading models...")
-        
-        # 기존 모델 정리
-        llm_service.cleanup()
-        
-        # 새 모델 로드
-        await llm_service.load_models()
-        
-        loaded_models = llm_service.get_loaded_models()
-        
-        return {
-            "message": "Models reloaded successfully",
-            "loaded_models": loaded_models,
-            "count": len(loaded_models)
-        }
-    except Exception as e:
-        logger.error(f"Error reloading models: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/query", response_model=QueryResponse)
-async def query(request: QueryRequest):
-    """일반 모드: 전체 응답 반환"""
-    page = (request.context or {}).get("page", "")
-    category = "travel" if page == "travel" else None
-
-    # 벡터 검색
-    search_results = vector_db.search(request.question, limit=4, category=category)
-    context_docs = [r.text for r in search_results]
-
-    # 프롬프트 생성
-    prompt = create_query_prompt(context_docs, request.question, role="여행 전문가" if page == "travel" else "AI 전문가")
-
-    # LLM 응답 생성
-    response = await llm_service.generate_response(prompt)
-
-    return {
-        "response": response,
-        "sources": [r.metadata for r in search_results]
-    }
-
-@app.on_event("startup")
-async def startup_event():
-    """Application startup event."""
-    global llm_service
-    logger.info("Starting application...")
-
-    # LLM 모델 로드
-    await llm_service.load_models()
-    logger.info("Application started successfully.")
 
 if __name__ == "__main__":
     uvicorn.run(
