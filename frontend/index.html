@@ -57,10 +57,10 @@
         }
         
         /* 새로운 노리 이미지들 */
-        .nori-health { background-image: url('./images/nori-health.png?v=' + Date.now()); }
-        .nori-travel { background-image: url('./images/nori-travel.png?v=' + Date.now()); }
-        .nori-investment { background-image: url('./images/nori-investment.png?v=' + Date.now()); }
-        .nori-legal { background-image: url('./images/nori-legal.png?v=' + Date.now()); }
+        .nori-health { background-image: url('./images/nori-health.png'); }
+        .nori-travel { background-image: url('./images/nori-travel.png'); }
+        .nori-investment { background-image: url('./images/nori-investment.png'); }
+        .nori-legal { background-image: url('./images/nori-legal.png'); }
         
         .nori-large {
             width: 64px;
@@ -409,10 +409,13 @@
 </head>
 <body>
     <div class="main-layout">
-        <!-- Header - 노리 제거하고 텍스트만 가운데 정렬 -->
+        <!-- Header - 가운데 정렬만 -->
         <header class="main-header px-8 py-2">
             <div class="flex items-center justify-center">
-                <h1 class="text-3xl font-bold text-amber-900 logo-font">AI 놀이터</h1>
+                <div class="flex items-center space-x-3">
+                    <div class="nori-icon nori-header"></div>
+                    <h1 class="text-3xl font-bold text-amber-900 logo-font">AI 놀이터</h1>
+                </div>
             </div>
         </header>
 
@@ -847,7 +850,7 @@
             document.getElementById('typingIndicator').classList.add('hidden');
         }
 
-        // 페이지 로드시 초기화
+        // 페이지 로드시 초기화 - 캐시 버스팅을 JavaScript에서 처리
         window.onload = async function() {
             console.log('🔍 노리 이미지 캐시 새로고침 중...');
             
@@ -861,13 +864,19 @@
                 { name: 'nori-legal.png', desc: '법률 노리 (가운)' }
             ];
             
-            // 모든 노리 아이콘 요소들의 배경 이미지 강제 업데이트
-            document.querySelectorAll('.nori-icon').forEach(icon => {
-                const currentBg = getComputedStyle(icon).backgroundImage;
-                if (currentBg && currentBg !== 'none') {
-                    const newBg = currentBg.replace(/\?v=\d+/, '').replace('.png)', `.png?v=${timestamp}`);
-                    icon.style.backgroundImage = newBg;
-                }
+            // 캐시 버스팅을 JavaScript로 적용
+            const categoryMapping = {
+                'nori-health': 'nori-health.png',
+                'nori-travel': 'nori-travel.png',
+                'nori-investment': 'nori-investment.png',
+                'nori-legal': 'nori-legal.png'
+            };
+            
+            Object.keys(categoryMapping).forEach(className => {
+                const elements = document.querySelectorAll(`.${className}`);
+                elements.forEach(el => {
+                    el.style.backgroundImage = `url('./images/${categoryMapping[className]}?v=${timestamp}')`;
+                });
             });
             
             let loadedCount = 0;
@@ -880,8 +889,6 @@
                     
                     if (loadedCount === noriImages.length) {
                         console.log('🎉 모든 노리 이미지 로딩 완료!');
-                        // 모든 노리 아이콘 강제 리렌더링
-                        forceNoriRefresh();
                     }
                 };
                 testImg.onerror = function() {
@@ -903,29 +910,6 @@
             
             loadRecommendations();
         };
-        
-        // 노리 아이콘 강제 새로고침 함수
-        function forceNoriRefresh() {
-            const timestamp = Date.now();
-            const categoryMapping = {
-                'health': 'nori-health',
-                'travel': 'nori-travel', 
-                'investment': 'nori-investment',
-                'legal': 'nori-legal'
-            };
-            
-            // 모든 노리 아이콘 클래스 업데이트
-            Object.keys(categoryMapping).forEach(category => {
-                const className = categoryMapping[category];
-                const elements = document.querySelectorAll(`.${className}`);
-                elements.forEach(el => {
-                    el.style.backgroundImage = `url('./images/${className.replace('nori-', 'nori-')}.png?v=${timestamp}')`;
-                });
-            });
-            
-            // 현재 카테고리 노리 아이콘 즉시 업데이트
-            updateNoriIcons(currentCategory);
-        }
     </script>
 </body>
 </html>
