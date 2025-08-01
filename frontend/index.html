@@ -597,7 +597,7 @@
         const categoryInfo = {
             health: { title: '건강 상담', subtitle: '건강에 관한 궁금한 점을 물어보세요' },
             travel: { title: '여행 상담', subtitle: '여행 계획과 정보를 도와드려요' },
-            investment: { title: '투자 상담', subtitle: '재테크 정보를 제공해요' },
+            investment: { title: '투자 상담', subtitle: '투자와 재테크 정보를 제공해요' },
             legal: { title: '법률 상담', subtitle: '법률 관련 궁금증을 해결해드려요' }
         };
 
@@ -621,7 +621,7 @@
             else if (tabName === 'recommendations') loadRecommendations();
         }
 
-        // 카테고리 변경
+        // 카테고리 변경 - 원래대로 복구
         function setCategory(category) {
             currentCategory = category;
             
@@ -635,35 +635,17 @@
             document.getElementById('chatTitle').textContent = categoryInfo[category].title;
             document.getElementById('chatSubtitle').textContent = categoryInfo[category].subtitle;
             
-            // 노리 아이콘 업데이트 (강제 새로고침)
-            setTimeout(() => updateNoriIcons(category), 100);
+            // 노리 아이콘 업데이트
+            updateNoriIcons(category);
         }
 
-        // 노리 아이콘 업데이트 - 새로운 여백 반영
+        // 노리 아이콘 업데이트 - 원래대로 복구
         function updateNoriIcons(category) {
-            const timestamp = Date.now();
             const noriClass = `nori-${category}`;
             
-            // 캐시 버스팅이 포함된 이미지 URL
-            const imageUrl = `./images/nori-${category}.png?v=${timestamp}`;
-            
-            const chatHeaderIcon = document.getElementById('chatHeaderIcon');
-            if (chatHeaderIcon) {
-                chatHeaderIcon.className = `nori-icon nori-large ${noriClass}`;
-                chatHeaderIcon.style.backgroundImage = `url('${imageUrl}')`;
-            }
-            
-            const welcomeIcon = document.getElementById('welcomeIcon');
-            if (welcomeIcon) {
-                welcomeIcon.className = `nori-icon nori-xl ${noriClass} mx-auto mb-3`;
-                welcomeIcon.style.backgroundImage = `url('${imageUrl}')`;
-            }
-            
-            const typingIcon = document.getElementById('typingIcon');
-            if (typingIcon) {
-                typingIcon.className = `nori-icon ${noriClass}`;
-                typingIcon.style.backgroundImage = `url('${imageUrl}')`;
-            }
+            document.getElementById('chatHeaderIcon').className = `nori-icon nori-large ${noriClass}`;
+            document.getElementById('welcomeIcon').className = `nori-icon nori-xl ${noriClass} mx-auto mb-3`;
+            document.getElementById('typingIcon').className = `nori-icon ${noriClass}`;
         }
 
         // 대화 초기화
@@ -740,47 +722,22 @@
             });
         }
 
-        // 추천 로드 - 각 질문에 맞는 노리와 자동 질문 기능 추가
+        // 추천 로드 - 원래대로 복구
         async function loadRecommendations() {
-            showLoadingRecommendations();
-            
-            // 약간의 지연으로 더 자연스러운 로딩 효과
-            await new Promise(resolve => setTimeout(resolve, 800));
-            
             const container = document.getElementById('recommendationsList');
+            container.innerHTML = '<div class="text-center py-6"><div class="text-base text-gray-500 menu-font">추천 로딩 중...</div></div>';
             
             const defaultRecommendations = [
-                { 
-                    question: "건강한 운동 방법을 알려주세요", 
-                    category: "건강", 
-                    icon: "nori-health",
-                    categoryKey: "health"
-                },
-                { 
-                    question: "제주도 여행 계획을 세워주세요", 
-                    category: "여행", 
-                    icon: "nori-travel",
-                    categoryKey: "travel"
-                },
-                { 
-                    question: "안전한 투자 방법은 무엇인가요?", 
-                    category: "투자", 
-                    icon: "nori-investment",
-                    categoryKey: "investment"
-                },
-                { 
-                    question: "계약서 작성시 주의사항을 알려주세요", 
-                    category: "법률", 
-                    icon: "nori-legal",
-                    categoryKey: "legal"
-                }
+                { question: "건강한 운동 방법을 알려주세요", category: "건강", icon: "nori-health", categoryKey: "health" },
+                { question: "제주도 여행 계획을 세워주세요", category: "여행", icon: "nori-travel", categoryKey: "travel" },
+                { question: "안전한 투자 방법은 무엇인가요?", category: "투자", icon: "nori-investment", categoryKey: "investment" },
+                { question: "계약서 작성시 주의사항을 알려주세요", category: "법률", icon: "nori-legal", categoryKey: "legal" }
             ];
             
             container.innerHTML = '';
-            defaultRecommendations.forEach((rec, index) => {
+            defaultRecommendations.forEach(rec => {
                 const recItem = document.createElement('div');
                 recItem.className = 'recommendation-card';
-                recItem.style.animationDelay = `${index * 0.1}s`;
                 recItem.innerHTML = `
                     <div class="flex items-start space-x-2">
                         <div class="nori-icon ${rec.icon} flex-shrink-0"></div>
@@ -811,12 +768,8 @@
                 
                 container.appendChild(recItem);
             });
-            
-            // 호버 효과 설정
-            setupRecommendationHover();
         }
 
-        // 자동 크기 조정
         function autoResize(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
@@ -829,14 +782,12 @@
             }
         }
 
-        // sendMessage 함수 개선 - 디버깅 추가
+        // sendMessage 함수 - 에러 처리 간소화
         async function sendMessage() {
             const input = document.getElementById('messageInput');
             const message = input.value.trim();
             
             if (!message) return;
-            
-            console.log('📤 메시지 전송 시작:', message);
             
             // 전송 버튼 비활성화
             const sendButton = document.getElementById('sendButton');
@@ -856,50 +807,27 @@
             showTypingIndicator();
             
             try {
-                console.log('🔗 백엔드 요청 시작:', BACKEND_URL);
-                
-                const requestData = {
-                    question: message,
-                    user_id: 'user_' + Date.now(),
-                    context: { 
-                        page: currentCategory, 
-                        timestamp: new Date().toISOString() 
-                    }
-                };
-                
-                console.log('📋 요청 데이터:', requestData);
-                
                 const response = await fetch(`${BACKEND_URL}/query`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify({
+                        question: message,
+                        user_id: 'user_' + Date.now(),
+                        context: { page: currentCategory, timestamp: new Date().toISOString() }
+                    })
                 });
 
-                console.log('📥 응답 상태:', response.status);
-                
                 hideTypingIndicator();
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('✅ 응답 데이터:', data);
                     addMessage(data.response, 'bot');
                 } else {
-                    console.error('❌ 응답 에러:', response.status, response.statusText);
-                    const errorText = await response.text();
-                    console.error('에러 내용:', errorText);
-                    addMessage('죄송합니다. 서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'bot');
+                    addMessage('죄송합니다. 서버 연결에 문제가 있습니다.', 'bot');
                 }
             } catch (error) {
                 hideTypingIndicator();
-                console.error('🚨 네트워크 에러:', error);
-                
-                // 더 구체적인 에러 메시지
-                let errorMessage = '네트워크 오류가 발생했습니다.';
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    errorMessage = '백엔드 서버에 연결할 수 없습니다. 서버가 실행 중인지 확인해주세요.';
-                }
-                
-                addMessage(errorMessage, 'bot');
+                addMessage('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'bot');
             } finally {
                 // 전송 버튼 활성화
                 sendButton.disabled = false;
@@ -907,104 +835,51 @@
             }
         }
 
-        // 백엔드 연결 테스트 함수 개선
-        async function testBackendConnection() {
-            console.log('🔍 백엔드 연결 테스트 시작...');
-            try {
-                const response = await fetch(`${BACKEND_URL}/health`, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('✅ 백엔드 연결 성공:', data);
-                    return true;
-                } else {
-                    console.error('❌ 백엔드 상태 확인 실패:', response.status);
-                    return false;
-                }
-            } catch (error) {
-                console.error('🚨 백엔드 연결 실패:', error);
-                return false;
-            }
+        function addMessage(text, sender) {
+            const container = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `chat-message mb-5 flex`;
+            
+            const noriClass = `nori-${currentCategory}`;
+            
+            const messageContent = `
+                <div class="${sender === 'user' ? 'message-user' : 'message-bot'}">
+                    ${sender === 'bot' ? `<div class="flex items-start space-x-3"><div class="nori-icon ${noriClass} mt-1"></div><div>` : ''}
+                    <p class="leading-relaxed message-font">${text}</p>
+                    ${sender === 'bot' ? '</div></div>' : ''}
+                </div>
+            `;
+            
+            messageDiv.innerHTML = messageContent;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
         }
 
-        // 페이지 로드시 초기화 - 연결 테스트 추가
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').classList.remove('hidden');
+            document.getElementById('messagesContainer').scrollTop = document.getElementById('messagesContainer').scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').classList.add('hidden');
+        }
+
+        // 페이지 로드시 초기화 - 간소화
         window.onload = async function() {
-            console.log('🚀 페이지 로드 시작');
-            
-            // 백엔드 연결 테스트
-            const isConnected = await testBackendConnection();
-            if (!isConnected) {
-                addMessage('⚠️ 백엔드 서버에 연결할 수 없습니다. Docker 컨테이너가 실행 중인지 확인해주세요.', 'bot');
-                console.log('🐳 Docker 상태 확인: docker-compose ps');
-                console.log('🔄 백엔드 재시작: docker-compose restart backend');
-            }
-            
-            // 노리 이미지 로딩
-            const timestamp = Date.now();
-            const noriImages = [
-                { name: 'nori.png', desc: '기본 노리' },
-                { name: 'nori-health.png', desc: '건강 노리 (의사)' },
-                { name: 'nori-travel.png', desc: '여행 노리 (모자)' },
-                { name: 'nori-investment.png', desc: '투자 노리 (정장)' },
-                { name: 'nori-legal.png', desc: '법률 노리 (가운)' }
-            ];
-            
-            // 모든 노리 아이콘 요소들의 배경 이미지 강제 업데이트
-            document.querySelectorAll('.nori-icon').forEach(icon => {
-                const currentBg = getComputedStyle(icon).backgroundImage;
-                if (currentBg && currentBg !== 'none') {
-                    const newBg = currentBg.replace(/\?v=\d+/, '').replace('.png)', `.png?v=${timestamp})`;
-                    icon.style.backgroundImage = newBg;
+            try {
+                const response = await fetch(`${BACKEND_URL}/health`);
+                if (response.ok) {
+                    console.log('백엔드 연결 성공');
+                } else {
+                    console.log('백엔드 연결 실패');
                 }
-            });
-            
-            let loadedCount = 0;
-            
-            for (const img of noriImages) {
-                const testImg = new Image();
-                testImg.onload = function() {
-                    console.log(`✅ ${img.desc} 로딩 성공: ${img.name}`);
-                    loadedCount++;
-                    
-                    if (loadedCount === noriImages.length) {
-                        console.log('🎉 모든 노리 이미지 로딩 완료!');
-                        forceNoriRefresh();
-                    }
-                };
-                testImg.onerror = function() {
-                    console.error(`❌ ${img.desc} 로딩 실패: ${img.name}`);
-                };
-                testImg.src = `./images/${img.name}?v=${timestamp}`;
+            } catch (error) {
+                console.log('백엔드 서버 연결 중...');
+                addMessage('백엔드 서버가 시작되고 있습니다. 잠시만 기다려주세요...', 'bot');
             }
             
             loadRecommendations();
         };
-
-        // 노리 아이콘 강제 새로고침 함수
-        function forceNoriRefresh() {
-            const timestamp = Date.now();
-            const categoryMapping = {
-                'health': 'nori-health',
-                'travel': 'nori-travel', 
-                'investment': 'nori-investment',
-                'legal': 'nori-legal'
-            };
-            
-            // 모든 노리 아이콘 클래스 업데이트
-            Object.keys(categoryMapping).forEach(category => {
-                const className = categoryMapping[category];
-                const elements = document.querySelectorAll(`.${className}`);
-                elements.forEach(el => {
-                    el.style.backgroundImage = `url('./images/${className.replace('nori-', 'nori-')}.png?v=${timestamp}')`;
-                });
-            });
-            
-            // 현재 카테고리 노리 아이콘 즉시 업데이트
-            updateNoriIcons(currentCategory);
-        }
     </script>
 </body>
 </html>
