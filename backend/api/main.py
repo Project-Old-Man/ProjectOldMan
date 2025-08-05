@@ -261,6 +261,66 @@ async def root():
         "features": ["카테고리별 전문 상담", "맞춤형 응답", "중장년층 특화"]
     }
 
+@app.get("/recommendations/{category}")
+async def get_category_recommendations(category: str):
+    """카테고리별 추천 질문 반환"""
+    
+    recommendations = {
+        "health": [
+            {"question": "혈압 관리 방법 알려주세요", "description": "중장년층 건강 관리", "priority": 1},
+            {"question": "당뇨 예방은 어떻게 하나요?", "description": "성인병 예방법", "priority": 2},
+            {"question": "건강한 운동법이 궁금해요", "description": "중장년층 맞춤 운동", "priority": 3},
+            {"question": "건강검진 주기는 어떻게 되나요?", "description": "정기 건강검진", "priority": 4},
+            {"question": "콜레스테롤 관리법 알려주세요", "description": "혈관 건강", "priority": 5},
+        ],
+        "travel": [
+            {"question": "제주도 여행 추천해주세요", "description": "인기 여행지", "priority": 1},
+            {"question": "부산 여행 코스 알려주세요", "description": "바다 여행", "priority": 2},
+            {"question": "경주 역사 여행 계획 세워주세요", "description": "문화재 탐방", "priority": 3},
+            {"question": "여행 준비물은 뭐가 필요한가요?", "description": "여행 팁", "priority": 4},
+            {"question": "강릉 여행 코스 추천해주세요", "description": "동해안 여행", "priority": 5},
+        ],
+        "investment": [
+            {"question": "안전한 투자 방법은?", "description": "저위험 투자", "priority": 1},
+            {"question": "연금 준비 어떻게 하나요?", "description": "은퇴 계획", "priority": 2},
+            {"question": "부동산 투자 주의사항은?", "description": "부동산 투자", "priority": 3},
+            {"question": "적금과 예금 어떤게 좋을까요?", "description": "기본 금융상품", "priority": 4},
+            {"question": "국채 투자 방법 알려주세요", "description": "안전 투자", "priority": 5},
+        ],
+        "legal": [
+            {"question": "계약서 작성시 주의사항", "description": "계약 법률", "priority": 1},
+            {"question": "상속 준비 방법", "description": "상속 법률", "priority": 2},
+            {"question": "사기 예방법 알려주세요", "description": "소비자 보호", "priority": 3},
+            {"question": "유언장 작성 방법", "description": "상속 준비", "priority": 4},
+            {"question": "임대차 계약 주의사항", "description": "부동산 법률", "priority": 5},
+        ]
+    }
+    
+    if category not in recommendations:
+        raise HTTPException(status_code=404, detail="카테고리를 찾을 수 없습니다")
+    
+    return {
+        "category": category,
+        "recommendations": recommendations[category][:4],  # 상위 4개만 반환
+        "total": len(recommendations[category])
+    }
+
+@app.get("/recommendations")
+async def get_all_recommendations():
+    """모든 카테고리의 추천 질문 반환"""
+    
+    all_categories = ["health", "travel", "investment", "legal"]
+    result = {}
+    
+    for category in all_categories:
+        response = await get_category_recommendations(category)
+        result[category] = response["recommendations"]
+    
+    return {
+        "recommendations": result,
+        "categories": all_categories
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

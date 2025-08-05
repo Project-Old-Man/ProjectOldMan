@@ -436,7 +436,7 @@
                     <!-- 카테고리 탭 -->
                     <div id="categoriesContent" class="tab-content">
                         <div class="space-y-3">
-                            <button onclick="setCategory('health')" data-category="health" 
+                            <button onclick="onCategoryClick('health')" data-category="health" 
                                     class="category-button active">
                                 <div class="flex items-center space-x-3">
                                     <div class="nori-icon nori-health nori-large flex-shrink-0"></div>
@@ -446,7 +446,7 @@
                                     </div>
                                 </div>
                             </button>
-                            <button onclick="setCategory('travel')" data-category="travel" 
+                            <button onclick="onCategoryClick('travel')" data-category="travel" 
                                     class="category-button">
                                 <div class="flex items-center space-x-3">
                                     <div class="nori-icon nori-travel nori-large flex-shrink-0"></div>
@@ -456,7 +456,7 @@
                                     </div>
                                 </div>
                             </button>
-                            <button onclick="setCategory('investment')" data-category="investment" 
+                            <button onclick="onCategoryClick('investment')" data-category="investment" 
                                     class="category-button">
                                 <div class="flex items-center space-x-3">
                                     <div class="nori-icon nori-investment nori-large flex-shrink-0"></div>
@@ -466,7 +466,7 @@
                                     </div>
                                 </div>
                             </button>
-                            <button onclick="setCategory('legal')" data-category="legal" 
+                            <button onclick="onCategoryClick('legal')" data-category="legal" 
                                     class="category-button">
                                 <div class="flex items-center space-x-3">
                                     <div class="nori-icon nori-legal nori-large flex-shrink-0"></div>
@@ -487,15 +487,138 @@
                         </div>
                     </div>
 
-                    <!-- 추천 탭 -->
+                    <!-- 추천 탭 - 완전히 새로 구현 -->
                     <div id="recommendationsContent" class="tab-content hidden">
-                        <div class="text-lg text-gray-700 mb-5 font-semibold menu-font">추천 질문</div>
-                        <div id="recommendationsList" class="space-y-2">
-                            <!-- 추천 항목들 -->
+                        <div class="text-lg text-gray-700 mb-5 font-semibold menu-font">카테고리별 추천 질문</div>
+                        
+                        <!-- 카테고리별 추천 질문들 -->
+                        <div id="recommendationsList" class="space-y-4">
+                            
+                            <!-- 건강 관련 추천 -->
+                            <div class="recommendation-category">
+                                <h4 class="text-md font-bold text-amber-800 mb-2 menu-font flex items-center">
+                                    <div class="nori-icon nori-health mr-2"></div>
+                                    건강 상담
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="recommendation-card health-rec" 
+                                         onclick="askRecommendedQuestion('health', '혈압 관리 방법 알려주세요')">
+                                        <div class="card-title">혈압 관리 방법 알려주세요</div>
+                                        <div class="card-meta">중장년층 건강 관리</div>
+                                    </div>
+                                    <div class="recommendation-card health-rec" 
+                                         onclick="askRecommendedQuestion('health', '당뇨 예방은 어떻게 하나요?')">
+                                        <div class="card-title">당뇨 예방은 어떻게 하나요?</div>
+                                        <div class="card-meta">성인병 예방법</div>
+                                    </div>
+                                    <div class="recommendation-card health-rec" 
+                                         onclick="askRecommendedQuestion('health', '건강한 운동법이 궁금해요')">
+                                        <div class="card-title">건강한 운동법이 궁금해요</div>
+                                        <div class="card-meta">중장년층 맞춤 운동</div>
+                                    </div>
+                                    <div class="recommendation-card health-rec" 
+                                         onclick="askRecommendedQuestion('health', '건강검진 주기는 어떻게 되나요?')">
+                                        <div class="card-title">건강검진 주기는 어떻게 되나요?</div>
+                                        <div class="card-meta">정기 건강검진</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 여행 관련 추천 -->
+                            <div class="recommendation-category">
+                                <h4 class="text-md font-bold text-amber-800 mb-2 menu-font flex items-center">
+                                    <div class="nori-icon nori-travel mr-2"></div>
+                                    여행 상담
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="recommendation-card travel-rec" 
+                                         onclick="askRecommendedQuestion('travel', '제주도 여행 추천해주세요')">
+                                        <div class="card-title">제주도 여행 추천해주세요</div>
+                                        <div class="card-meta">인기 여행지</div>
+                                    </div>
+                                    <div class="recommendation-card travel-rec" 
+                                         onclick="askRecommendedQuestion('travel', '부산 여행 코스 알려주세요')">
+                                        <div class="card-title">부산 여행 코스 알려주세요</div>
+                                        <div class="card-meta">바다 여행</div>
+                                    </div>
+                                    <div class="recommendation-card travel-rec" 
+                                         onclick="askRecommendedQuestion('travel', '경주 역사 여행 계획 세워주세요')">
+                                        <div class="card-title">경주 역사 여행 계획 세워주세요</div>
+                                        <div class="card-meta">문화재 탐방</div>
+                                    </div>
+                                    <div class="recommendation-card travel-rec" 
+                                         onclick="askRecommendedQuestion('travel', '여행 준비물은 뭐가 필요한가요?')">
+                                        <div class="card-title">여행 준비물은 뭐가 필요한가요?</div>
+                                        <div class="card-meta">여행 팁</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 투자 관련 추천 -->
+                            <div class="recommendation-category">
+                                <h4 class="text-md font-bold text-amber-800 mb-2 menu-font flex items-center">
+                                    <div class="nori-icon nori-investment mr-2"></div>
+                                    투자 상담
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="recommendation-card investment-rec" 
+                                         onclick="askRecommendedQuestion('investment', '안전한 투자 방법은?')">
+                                        <div class="card-title">안전한 투자 방법은?</div>
+                                        <div class="card-meta">저위험 투자</div>
+                                    </div>
+                                    <div class="recommendation-card investment-rec" 
+                                         onclick="askRecommendedQuestion('investment', '연금 준비 어떻게 하나요?')">
+                                        <div class="card-title">연금 준비 어떻게 하나요?</div>
+                                        <div class="card-meta">은퇴 계획</div>
+                                    </div>
+                                    <div class="recommendation-card investment-rec" 
+                                         onclick="askRecommendedQuestion('investment', '부동산 투자 주의사항은?')">
+                                        <div class="card-title">부동산 투자 주의사항은?</div>
+                                        <div class="card-meta">부동산 투자</div>
+                                    </div>
+                                    <div class="recommendation-card investment-rec" 
+                                         onclick="askRecommendedQuestion('investment', '적금과 예금 어떤게 좋을까요?')">
+                                        <div class="card-title">적금과 예금 어떤게 좋을까요?</div>
+                                        <div class="card-meta">기본 금융상품</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 법률 관련 추천 -->
+                            <div class="recommendation-category">
+                                <h4 class="text-md font-bold text-amber-800 mb-2 menu-font flex items-center">
+                                    <div class="nori-icon nori-legal mr-2"></div>
+                                    법률 상담
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="recommendation-card legal-rec" 
+                                         onclick="askRecommendedQuestion('legal', '계약서 작성시 주의사항')">
+                                        <div class="card-title">계약서 작성시 주의사항</div>
+                                        <div class="card-meta">계약 법률</div>
+                                    </div>
+                                    <div class="recommendation-card legal-rec" 
+                                         onclick="askRecommendedQuestion('legal', '상속 준비 방법')">
+                                        <div class="card-title">상속 준비 방법</div>
+                                        <div class="card-meta">상속 법률</div>
+                                    </div>
+                                    <div class="recommendation-card legal-rec" 
+                                         onclick="askRecommendedQuestion('legal', '사기 예방법 알려주세요')">
+                                        <div class="card-title">사기 예방법 알려주세요</div>
+                                        <div class="card-meta">소비자 보호</div>
+                                    </div>
+                                    <div class="recommendation-card legal-rec" 
+                                         onclick="askRecommendedQuestion('legal', '유언장 작성 방법')">
+                                        <div class="card-title">유언장 작성 방법</div>
+                                        <div class="card-meta">상속 준비</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <button onclick="loadRecommendations()" 
-                                class="w-full mt-5 px-5 py-3 bg-gradient-to-r from-yellow-200 to-yellow-300 text-yellow-900 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transition-all text-base font-semibold button-font shadow-md">
-                            새로운 추천 가져오기
+
+                        <!-- 새로고침 버튼 -->
+                        <button onclick="shuffleRecommendations()" 
+                                class="w-full mt-5 px-5 py-3 bg-gradient-to-r from-yellow-200 to-yellow-300 text-yellow-900 rounded-xl hover:from-yellow-300 hover:to-yellow-400 transition-all text-lg font-bold button-font shadow-md">
+                             다른 추천 질문 보기
                         </button>
                     </div>
                 </div>
@@ -611,8 +734,9 @@
             }
         };
 
-        // 탭 전환
+        // 탭 전환 함수
         function switchTab(tabName) {
+            console.log(`탭 전환: ${tabName}`);
             currentTab = tabName;
             
             // 탭 버튼 스타일 업데이트
@@ -628,57 +752,325 @@
             document.getElementById(tabName + 'Content').classList.remove('hidden');
             
             if (tabName === 'history') loadChatHistory();
-            else if (tabName === 'recommendations') loadRecommendations();
+            else if (tabName === 'recommendations') {
+                setTimeout(() => {
+                    highlightRecommendationCategory(currentCategory);
+                }, 100);
+            }
         }
 
-        // 카테고리 변경
-        function setCategory(category) {
+        // 카테고리 변경 함수 (중복 메시지 방지)
+        function setCategory(category, skipWelcomeMessage = false) {
+            console.log(`🔄 카테고리 변경: ${currentCategory} → ${category}`);
             currentCategory = category;
             
             // 카테고리 버튼 스타일 업데이트
             document.querySelectorAll('.category-button').forEach(btn => {
                 btn.classList.remove('active');
             });
-            document.querySelector(`[data-category="${category}"]`).classList.add('active');
+            const categoryButton = document.querySelector(`[data-category="${category}"]`);
+            if (categoryButton) {
+                categoryButton.classList.add('active');
+                console.log(`✅ 카테고리 버튼 활성화: ${category}`);
+            } else {
+                console.error(`❌ 카테고리 버튼을 찾을 수 없음: ${category}`);
+            }
             
             // 헤더 업데이트
-            document.getElementById('chatTitle').textContent = categoryInfo[category].title;
-            document.getElementById('chatSubtitle').textContent = categoryInfo[category].subtitle;
+            const titleElement = document.getElementById('chatTitle');
+            const subtitleElement = document.getElementById('chatSubtitle');
+            if (titleElement && subtitleElement) {
+                titleElement.textContent = categoryInfo[category].title;
+                subtitleElement.textContent = categoryInfo[category].subtitle;
+                console.log(`✅ 헤더 업데이트 완료: ${categoryInfo[category].title}`);
+            }
             
-            // 노리 아이콘 업데이트 (강제 새로고침)
-            setTimeout(() => updateNoriIcons(category), 100);
-
-            // 카테고리별 환영 메시지 표시
-            setTimeout(() => {
-                const welcomeMessage = `안녕하세요! ${categoryInfo[category].prompt}`;
-                addMessage(welcomeMessage, 'bot');
-            }, 500);
+            // 노리 아이콘 업데이트
+            updateNoriIcons(category);
+            
+            // 추천 탭에서 해당 카테고리 하이라이트
+            highlightRecommendationCategory(category);
+            
+            // 환영 메시지 표시 (중복 방지)
+            if (!skipWelcomeMessage && currentTab === 'categories') {
+                setTimeout(() => {
+                    const welcomeMessage = `안녕하세요! ${categoryInfo[category].prompt}`;
+                    addMessage(welcomeMessage, 'bot');
+                }, 500);
+            }
         }
 
-        // 노리 아이콘 업데이트 - 새로운 여백 반영
+        // 노리 아이콘 업데이트 함수 (강화됨)
         function updateNoriIcons(category) {
+            console.log(`🎨 노리 아이콘 업데이트: ${category}`);
             const timestamp = Date.now();
             const noriClass = `nori-${category}`;
-            
-            // 캐시 버스팅이 포함된 이미지 URL
             const imageUrl = `./images/nori-${category}.png?v=${timestamp}`;
             
+            // 헤더 아이콘
             const chatHeaderIcon = document.getElementById('chatHeaderIcon');
             if (chatHeaderIcon) {
                 chatHeaderIcon.className = `nori-icon nori-large ${noriClass}`;
                 chatHeaderIcon.style.backgroundImage = `url('${imageUrl}')`;
+                console.log(`✅ 헤더 아이콘 업데이트: ${noriClass}`);
             }
             
+            // 환영 메시지 아이콘
             const welcomeIcon = document.getElementById('welcomeIcon');
             if (welcomeIcon) {
                 welcomeIcon.className = `nori-icon nori-xl ${noriClass} mx-auto mb-3`;
                 welcomeIcon.style.backgroundImage = `url('${imageUrl}')`;
+                console.log(`✅ 환영 아이콘 업데이트: ${noriClass}`);
             }
             
+            // 타이핑 인디케이터 아이콘
             const typingIcon = document.getElementById('typingIcon');
             if (typingIcon) {
                 typingIcon.className = `nori-icon ${noriClass}`;
                 typingIcon.style.backgroundImage = `url('${imageUrl}')`;
+                console.log(`✅ 타이핑 아이콘 업데이트: ${noriClass}`);
+            }
+        }
+
+        // ⭐ 핵심: 추천 질문 클릭 함수 (추천 탭에서 벗어나지 않도록 수정)
+        async function askRecommendedQuestion(targetCategory, question) {
+            console.log(`🎯 추천 질문 클릭됨!`);
+            console.log(`  📂 대상 카테고리: ${targetCategory}`);
+            console.log(`  💬 질문: ${question}`);
+            console.log(`  📍 현재 카테고리: ${currentCategory}`);
+            console.log(`  📋 현재 탭: ${currentTab}`);
+            
+            try {
+                // 1. 카테고리 변경 (필요한 경우) - 탭은 변경하지 않음
+                if (currentCategory !== targetCategory) {
+                    console.log('1️⃣ 카테고리 변경 중... (탭은 유지)');
+                    setCategory(targetCategory, true); // skipWelcomeMessage = true
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+                
+                // 2. 시스템 메시지로 사용자에게 알림 (추천 탭에서)
+                console.log('2️⃣ 시스템 메시지 표시...');
+                addSystemMessage(`🔄 ${categoryInfo[targetCategory].title} 카테고리로 전환했습니다.`);
+                
+                // 3. 입력창에 질문 자동 설정
+                console.log('3️⃣ 질문 자동 입력 중...');
+                const messageInput = document.getElementById('messageInput');
+                if (messageInput) {
+                    messageInput.value = question;
+                    console.log(`✅ 입력창에 질문 설정됨: "${question}"`);
+                    
+                    // 입력창 높이 자동 조절
+                    autoResize(messageInput);
+                } else {
+                    console.error('❌ 메시지 입력창을 찾을 수 없습니다');
+                    throw new Error('입력창을 찾을 수 없습니다');
+                }
+                
+                // 4. 잠시 대기 후 자동 전송
+                console.log('4️⃣ 자동 질문 전송 준비...');
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // 5. 질문 자동 전송
+                console.log('5️⃣ 질문 자동 전송 중...');
+                await sendMessage();
+                
+                // 6. 추천 탭에서 카테고리 하이라이트 업데이트
+                highlightRecommendationCategory(targetCategory);
+                
+                console.log('🎉 추천 질문 처리 완료! (추천 탭 유지)');
+                
+            } catch (error) {
+                console.error('❌ 추천 질문 처리 중 오류:', error);
+                addSystemMessage(`❌ 오류가 발생했습니다: ${error.message}`);
+            }
+        }
+
+        // 시스템 메시지 추가 함수 (기존 중복 메시지 확인)
+        function addSystemMessage(text) {
+            console.log(`📢 시스템 메시지: ${text}`);
+            const container = document.getElementById('messagesContainer');
+            if (!container) {
+                console.error('❌ 메시지 컨테이너를 찾을 수 없습니다');
+                return;
+            }
+            
+            // 기존에 같은 메시지가 있는지 확인 (중복 방지)
+            const existingMessages = container.querySelectorAll('.system-message');
+            const isDuplicate = Array.from(existingMessages).some(msg => 
+                msg.textContent.includes(text.replace(/🔄|💡|❌/g, '').trim())
+            );
+            
+            if (isDuplicate) {
+                console.log('⚠️ 중복 시스템 메시지 방지됨');
+                return;
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'text-center my-3 chat-message system-message';
+            messageDiv.innerHTML = `
+                <div class="inline-block bg-blue-50 border border-blue-200 rounded-lg px-3 py-2 text-sm text-blue-800 menu-font animate-pulse">
+                    ${text}
+                </div>
+            `;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+            
+            // 3초 후 메시지 제거
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.parentNode.removeChild(messageDiv);
+                        }
+                    }, 500);
+                }
+            }, 3000);
+        }
+
+        // 추천 질문 셔플 함수 (클릭 이벤트 재설정 포함)
+        function shuffleRecommendations() {
+            console.log('🔄 추천 질문 셔플 및 클릭 이벤트 재설정...');
+            
+            const allRecommendations = {
+                health: [
+                    { q: "혈압 관리 방법 알려주세요", desc: "중장년층 건강 관리" },
+                    { q: "당뇨 예방은 어떻게 하나요?", desc: "성인병 예방법" },
+                    { q: "건강한 운동법이 궁금해요", desc: "중장년층 맞춤 운동" },
+                    { q: "건강검진 주기는 어떻게 되나요?", desc: "정기 건강검진" },
+                    { q: "콜레스테롤 관리법 알려주세요", desc: "혈관 건강" },
+                    { q: "골다공증 예방 방법은?", desc: "뼈 건강" },
+                    { q: "스트레스 관리 방법", desc: "정신 건강" },
+                    { q: "수면의 질 개선 방법", desc: "수면 건강" }
+                ],
+                travel: [
+                    { q: "제주도 여행 추천해주세요", desc: "인기 여행지" },
+                    { q: "부산 여행 코스 알려주세요", desc: "바다 여행" },
+                    { q: "경주 역사 여행 계획 세워주세요", desc: "문화재 탐방" },
+                    { q: "여행 준비물은 뭐가 필요한가요?", desc: "여행 팁" },
+                    { q: "강릉 여행 코스 추천해주세요", desc: "동해안 여행" },
+                    { q: "전주 한옥마을 여행 계획", desc: "전통 문화" },
+                    { q: "여행자 보험 가입 방법", desc: "여행 준비" },
+                    { q: "온천 여행지 추천해주세요", desc: "힐링 여행" }
+                ],
+                investment: [
+                    { q: "안전한 투자 방법은?", desc: "저위험 투자" },
+                    { q: "연금 준비 어떻게 하나요?", desc: "은퇴 계획" },
+                    { q: "부동산 투자 주의사항은?", desc: "부동산 투자" },
+                    { q: "적금과 예금 어떤게 좋을까요?", desc: "기본 금융상품" },
+                    { q: "국채 투자 방법 알려주세요", desc: "안전 투자" },
+                    { q: "펀드 투자 기초 지식", desc: "간접 투자" },
+                    { q: "ISA 계좌란 무엇인가요?", desc: "세제혜택 상품" },
+                    { q: "퇴직연금 관리 방법", desc: "퇴직 준비" }
+                ],
+                legal: [
+                    { q: "계약서 작성시 주의사항", desc: "계약 법률" },
+                    { q: "상속 준비 방법", desc: "상속 법률" },
+                    { q: "사기 예방법 알려주세요", desc: "소비자 보호" },
+                    { q: "유언장 작성 방법", desc: "상속 준비" },
+                    { q: "임대차 계약 주의사항", desc: "부동산 법률" },
+                    { q: "소비자 분쟁 해결 방법", desc: "소비자 권익" },
+                    { q: "의료사고 대처 방법", desc: "의료 법률" },
+                    { q: "노인장기요양보험 신청법", desc: "복지 혜택" }
+                ]
+            };
+
+            // 각 카테고리별로 추천 질문 업데이트 및 클릭 이벤트 재설정
+            Object.keys(allRecommendations).forEach(category => {
+                console.log(`🔄 ${category} 카테고리 처리 중...`);
+                
+                const recommendations = allRecommendations[category];
+                const shuffled = recommendations.sort(() => 0.5 - Math.random()).slice(0, 4);
+                
+                // 해당 카테고리의 카드들 찾기
+                const cards = document.querySelectorAll(`.${category}-rec`);
+                console.log(`  📋 찾은 ${category} 카드: ${cards.length}개`);
+                
+                shuffled.forEach((rec, index) => {
+                    if (cards[index]) {
+                        // ⭐ 중요: 클릭 이벤트를 완전히 새로 설정
+                        const card = cards[index];
+                        
+                        // 기존 이벤트 제거
+                        card.onclick = null;
+                        card.removeEventListener('click', card._clickHandler);
+                        
+                        // 새로운 클릭 이벤트 핸들러 생성
+                        const clickHandler = (event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            console.log(`🎯 카드 클릭됨: ${category} - ${rec.q}`);
+                            askRecommendedQuestion(category, rec.q);
+                        };
+                        
+                        // 이벤트 핸들러 저장 (나중에 제거하기 위해)
+                        card._clickHandler = clickHandler;
+                        
+                        // 클릭 이벤트 등록 (여러 방식으로)
+                        card.onclick = clickHandler;
+                        card.addEventListener('click', clickHandler);
+                        
+                        // 커서 포인터 추가
+                        card.style.cursor = 'pointer';
+                        
+                        // 텍스트 업데이트
+                        const titleElement = card.querySelector('.card-title');
+                        const metaElement = card.querySelector('.card-meta');
+                        
+                        if (titleElement) {
+                            titleElement.textContent = rec.q;
+                            titleElement.style.cursor = 'pointer';
+                        }
+                        if (metaElement) {
+                            metaElement.textContent = rec.desc;
+                            metaElement.style.cursor = 'pointer';
+                        }
+                        
+                        console.log(`  ✅ 카드 ${index + 1} 업데이트 및 이벤트 설정: ${rec.q}`);
+                    }
+                });
+            });
+
+            // 성공 메시지
+            addSystemMessage("🔄 새로운 추천 질문이 준비되었습니다!");
+            console.log('✅ 추천 질문 셔플 및 이벤트 설정 완료');
+        }
+
+        // 추천 탭에서 선택된 카테고리 하이라이트
+        function highlightRecommendationCategory(category) {
+            console.log(`🎨 추천 카테고리 하이라이트: ${category}`);
+            
+            // 모든 추천 카테고리 초기화
+            document.querySelectorAll('.recommendation-category').forEach(cat => {
+                cat.style.backgroundColor = '';
+                cat.style.border = '';
+                cat.style.borderRadius = '';
+                cat.style.padding = '';
+                cat.style.transform = '';
+                cat.style.boxShadow = '';
+            });
+            
+            // 선택된 카테고리 하이라이트
+            const categoryMap = {
+                'health': 0,
+                'travel': 1, 
+                'investment': 2,
+                'legal': 3
+            };
+            
+            const categoryIndex = categoryMap[category];
+            if (categoryIndex !== undefined) {
+                const categoryElements = document.querySelectorAll('.recommendation-category');
+                const categoryElement = categoryElements[categoryIndex];
+                if (categoryElement) {
+                    categoryElement.style.backgroundColor = '#fef3c7';
+                    categoryElement.style.border = '2px solid #fbbf24';
+                    categoryElement.style.borderRadius = '12px';
+                    categoryElement.style.padding = '12px';
+                    categoryElement.style.transform = 'scale(1.02)';
+                    categoryElement.style.boxShadow = '0 8px 25px rgba(251, 191, 36, 0.3)';
+                    console.log(`✅ 카테고리 ${category} 하이라이트 적용됨`);
+                }
             }
         }
 
@@ -884,9 +1276,9 @@
             
             const messageContent = `
                 <div class="${sender === 'user' ? 'message-user' : 'message-bot'}">
-                    ${sender === 'bot' ? `<div class="flex items-start space-x-3"><div class="nori-icon ${noriClass} mt-1"></div><div>` : ''}
+                    ${sender === 'bot' ? `<div class="flex items-start space-x-3"><div class="nori-icon ${noriClass} mt-1"></div><div>` : '' }
                     <p class="leading-relaxed message-font">${text}</p>
-                    ${sender === 'bot' ? '</div></div>' : ''}
+                    ${sender === 'bot' ? '</div></div>' : '' }
                 </div>
             `;
             
@@ -904,21 +1296,12 @@
             document.getElementById('typingIndicator').classList.add('hidden');
         }
 
-        // 페이지 로드시 초기화 - 캐시 버스팅을 JavaScript에서 처리
+        // 페이지 로드시 초기화 (강화됨)
         window.onload = async function() {
-            console.log('🔍 노리 이미지 캐시 새로고침 중...');
+            console.log('🚀 페이지 로딩 시작...');
             
-            // 캐시 버스팅을 위한 타임스탬프 추가
+            // 노리 이미지 캐시 버스팅
             const timestamp = Date.now();
-            const noriImages = [
-                { name: 'nori.png', desc: '기본 노리' },
-                { name: 'nori-health.png', desc: '건강 노리 (의사)' },
-                { name: 'nori-travel.png', desc: '여행 노리 (모자)' },
-                { name: 'nori-investment.png', desc: '투자 노리 (정장)' },
-                { name: 'nori-legal.png', desc: '법률 노리 (가운)' }
-            ];
-            
-            // 캐시 버스팅을 JavaScript로 적용
             const categoryMapping = {
                 'nori-health': 'nori-health.png',
                 'nori-travel': 'nori-travel.png',
@@ -933,37 +1316,94 @@
                 });
             });
             
-            let loadedCount = 0;
-            
-            for (const img of noriImages) {
-                const testImg = new Image();
-                testImg.onload = function() {
-                    console.log(`✅ ${img.desc} 로딩 성공: ${img.name}`);
-                    loadedCount++;
-                    
-                    if (loadedCount === noriImages.length) {
-                        console.log('🎉 모든 노리 이미지 로딩 완료!');
-                    }
-                };
-                testImg.onerror = function() {
-                    console.error(`❌ ${img.desc} 로딩 실패: ${img.name}`);
-                    console.log(`파일 경로 확인: /images/${img.name}`);
-                };
-                testImg.src = `./images/${img.name}?v=${timestamp}`;
-            }
-            
             // 백엔드 연결 테스트
             try {
                 const response = await fetch(`${BACKEND_URL}/health`);
                 if (response.ok) {
-                    console.log('백엔드 연결 성공');
+                    console.log('✅ 백엔드 연결 성공');
+                } else {
+                    console.log('⚠️ 백엔드 연결 실패');
+                    addSystemMessage('⚠️ 백엔드 서버 연결에 문제가 있습니다.');
                 }
             } catch (error) {
-                addMessage('백엔드 서버가 시작되고 있습니다. 잠시만 기다려주세요...', 'bot');
+                console.log('⚠️ 백엔드 연결 오류:', error);
+                addSystemMessage('🔄 백엔드 서버가 시작되고 있습니다. 잠시만 기다려주세요...');
             }
             
-            loadRecommendations();
+            // 추천 질문 초기화 (더 늦게 실행)
+            setTimeout(() => {
+                console.log('🎯 추천 질문 시스템 초기화...');
+                try {
+                    shuffleRecommendations();
+                    highlightRecommendationCategory(currentCategory);
+                    console.log('✅ 추천 질문 시스템 초기화 완료');
+                } catch (error) {
+                    console.error('❌ 추천 질문 초기화 실패:', error);
+                }
+            }, 2500); // 2.5초 후 실행
+            
+            console.log('✅ 페이지 로딩 완료');
         };
+        
+        // 🔧 디버깅용 함수들 (강화됨)
+        window.testFunctions = {
+            // 추천 질문 강제 테스트
+            testRecommendation: (category = 'travel', question = '제주도 여행 추천해주세요') => {
+                console.log(`🧪 추천 질문 테스트: ${category} - ${question}`);
+                askRecommendedQuestion(category, question);
+            },
+            
+            // 현재 상태 확인
+            checkStatus: () => {
+                console.log('📊 현재 상태:');
+                console.log(`  - 현재 카테고리: ${currentCategory}`);
+                console.log(`  - 현재 탭: ${currentTab}`);
+                console.log(`  - 추천 카드 개수: ${document.querySelectorAll('.recommendation-card').length}`);
+                console.log(`  - 메시지 입력창: ${document.getElementById('messageInput') ? '✅' : '❌'}`);
+                console.log(`  - 시스템 메시지 개수: ${document.querySelectorAll('.system-message').length}`);
+            },
+            
+            // 추천 카드 클릭 이벤트 확인
+            checkCards: () => {
+                console.log('🃏 추천 카드 클릭 이벤트 확인:');
+                document.querySelectorAll('.recommendation-card').forEach((card, index) => {
+                    const title = card.querySelector('.card-title')?.textContent || 'No title';
+                    const hasClick = !!card.onclick;
+                    const hasListener = !!card._clickHandler;
+                    console.log(`  ${index + 1}. "${title}"`);
+                    console.log(`     onclick: ${hasClick ? '✅' : '❌'}`);
+                    console.log(`     listener: ${hasListener ? '✅' : '❌'}`);
+                });
+            },
+            
+            // 강제 셔플
+            forceShuffle: () => {
+                console.log('🔄 강제 셔플 실행...');
+                shuffleRecommendations();
+            },
+            
+            // 카테고리 변경 테스트
+            testCategoryChange: (category = 'travel') => {
+                console.log(`🔄 카테고리 변경 테스트: ${category}`);
+                setCategory(category);
+            },
+            
+            // 중복 메시지 테스트
+            testDuplicateMessage: () => {
+                console.log('🔁 중복 메시지 테스트...');
+                addSystemMessage('🔄 테스트 메시지입니다.');
+                setTimeout(() => addSystemMessage('🔄 테스트 메시지입니다.'), 500);
+            }
+        };
+        
+        // 개발자 도구 안내
+        console.log('🛠️ 디버깅 함수 사용법:');
+        console.log('  - testFunctions.testRecommendation("travel", "제주도 여행 추천해주세요")');
+        console.log('  - testFunctions.checkStatus()');
+        console.log('  - testFunctions.checkCards()');
+        console.log('  - testFunctions.forceShuffle()');
+        console.log('  - testFunctions.testCategoryChange("travel")');
+        console.log('  - testFunctions.testDuplicateMessage()');
     </script>
 </body>
 </html>
