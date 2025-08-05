@@ -126,6 +126,8 @@
             width: 320px;
             height: 100%;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .chat-container {
@@ -342,87 +344,207 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        /* 헤더 스타일 - 높이 더 줄이기 */
-        .main-header {
+        /* 상단 배너 스타일 추가 */
+        .top-banner {
             background: linear-gradient(135deg, #fef3c7 0%, #fde68a 50%, #fbbf24 100%);
             border-bottom: 2px solid #f59e0b;
             box-shadow: 0 2px 12px rgba(251, 191, 36, 0.15);
+            padding: 12px 24px;
+        }
+        
+        .banner-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .banner-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .banner-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .banner-button {
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #92400e;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        
+        .banner-button:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+        }
+        
+        .search-box {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 8px 16px;
+            width: 300px;
+            font-size: 14px;
+            color: #374151;
+        }
+        
+        .search-box::placeholder {
+            color: #6b7280;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.2);
+        }
+        
+        /* 사이드바 하단 메뉴 스타일 */
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 16px 24px;
+            border-top: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.5);
+        }
+        
+        .bottom-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .bottom-menu-item:hover {
+            background: rgba(251, 191, 36, 0.1);
+            color: #92400e;
+        }
+        
+        .bottom-menu-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+        
+        /* 사이드바 전체 높이 조정 */
+        .sidebar {
+            width: 320px;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-content {
+            flex: 1;
+            padding: 24px;
+        }
+        
+        /* 알림/프로필 아이콘 */
+        .profile-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            fill: #92400e;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .notification-icon:hover {
+            fill: #f59e0b;
         }
 
-        /* 환영 메시지 스타일 - 박스 높이 더 줄이기 */
+        /* 환영 메시지 스타일 - 원래대로 복원 */
         .welcome-card {
             background: linear-gradient(135deg, #ffffff 0%, #fefce8 100%);
             border: 3px solid #fde047;
             border-radius: 20px;
             box-shadow: 0 8px 32px rgba(253, 224, 71, 0.2);
-            padding: 16px 20px;
+            padding: 24px 28px;
             text-align: center;
-            max-width: 380px;
+            max-width: 450px;
+            margin: 0 auto;
         }
 
         .welcome-title {
-            font-size: 20px;
+            font-size: 24px;
             font-weight: 700;
             color: #92400e;
-            margin-bottom: 6px;
-            line-height: 1.2;
+            margin-bottom: 8px;
+            line-height: 1.3;
         }
 
         .welcome-subtitle {
-            font-size: 13px;
+            font-size: 16px;
             color: #6b7280;
-            line-height: 1.4;
+            line-height: 1.5;
             font-weight: 400;
-        }
-
-        /* 상단 버튼들 폰트 크기만 증가 */
-        .header-button {
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: 700;
-            transition: all 0.2s ease;
-            border: none;
-            cursor: pointer;
-        }
-
-        .header-button.delete {
-            background: #fef2f2;
-            color: #dc2626;
-        }
-
-        .header-button.delete:hover {
-            background: #fee2e2;
-            transform: translateY(-1px);
-        }
-
-        .header-button.export {
-            background: #eff6ff;
-            color: #2563eb;
-        }
-
-        .header-button.export:hover {
-            background: #dbeafe;
-            transform: translateY(-1px);
         }
     </style>
 </head>
 <body>
     <div class="main-layout">
-        <!-- Header - 가운데 정렬만 -->
-        <header class="main-header px-8 py-2">
-            <div class="flex items-center justify-center">
-                <div class="flex items-center space-x-3">
-                    <div class="nori-icon nori-header"></div>
-                    <h1 class="text-3xl font-bold text-amber-900 logo-font">AI 놀이터</h1>
+        <!-- 상단 배너 추가 -->
+        <header class="top-banner">
+            <div class="banner-content">
+                <div class="banner-left">
+                    <div class="flex items-center space-x-3">
+                        <div class="nori-icon nori-header"></div>
+                        <h1 class="text-2xl font-bold text-amber-900 logo-font">AI 놀이터</h1>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button class="banner-button button-font">새 채팅</button>
+                        <button class="banner-button button-font">AI 모델</button>
+                        <button class="banner-button button-font">실험실</button>
+                        <button class="banner-button button-font">대화 기록</button>
+                    </div>
+                </div>
+                
+                <div class="banner-right">
+                    <input type="text" placeholder="대화 내용 검색..." class="search-box menu-font">
+                    
+                    <!-- 알림 아이콘 -->
+                    <svg class="notification-icon" viewBox="0 0 24 24">
+                        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+                    </svg>
+                    
+                    <!-- 프로필 아이콘 -->
+                    <div class="profile-icon">노</div>
                 </div>
             </div>
         </header>
 
         <div class="content-area">
-            <!-- Sidebar - 가독성 개선 -->
+            <!-- Sidebar - 하단 메뉴 추가 -->
             <aside class="sidebar bg-gradient-to-b from-gray-50 to-gray-100 border-r-2 border-gray-200">
-                <div class="p-6">
+                <div class="sidebar-content">
                     <!-- 탭 네비게이션 -->
                     <div class="tab-navigation">
                         <button onclick="switchTab('categories')" id="categoriesTab" 
@@ -622,6 +744,43 @@
                         </button>
                     </div>
                 </div>
+                
+                <!-- 사이드바 하단 메뉴 추가 -->
+                <div class="sidebar-bottom">
+                    <div class="space-y-1">
+                        <!-- 설정 메뉴 -->
+                        <div class="bottom-menu-item" onclick="openSettings()">
+                            <svg class="bottom-menu-icon" viewBox="0 0 24 24">
+                                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.82,11.69,4.82,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                            </svg>
+                            <span class="menu-font">설정</span>
+                        </div>
+                        
+                        <!-- 도움말 메뉴 -->
+                        <div class="bottom-menu-item" onclick="openHelp()">
+                            <svg class="bottom-menu-icon" viewBox="0 0 24 24">
+                                <path d="M12,2C6.48,2,2,6.48,2,12s4.48,10,10,10s10-4.48,10-10S17.52,2,12,2z M13,19h-2v-2h2V19z M15.07,11.25l-0.9,0.92 C13.45,12.9,13,13.5,13,15h-2v-0.5c0-1.1,0.45-2.1,1.17-2.83l1.24-1.26c0.37-0.36,0.59-0.86,0.59-1.41c0-1.1-0.9-2-2-2 s-2,0.9-2,2H8c0-2.21,1.79-4,4-4s4,1.79,4,4C16,9.59,15.64,10.53,15.07,11.25z"/>
+                            </svg>
+                            <span class="menu-font">도움말</span>
+                        </div>
+                        
+                        <!-- 업그레이드 메뉴 -->
+                        <div class="bottom-menu-item" onclick="openUpgrade()">
+                            <svg class="bottom-menu-icon" viewBox="0 0 24 24">
+                                <path d="M12,2l3.09,6.26L22,9.27l-5,4.87L18.18,22L12,18.77L5.82,22L7,14.14l-5-4.87l6.91-1.01L12,2z"/>
+                            </svg>
+                            <span class="menu-font">업그레이드</span>
+                        </div>
+                        
+                        <!-- 피드백 메뉴 -->
+                        <div class="bottom-menu-item" onclick="openFeedback()">
+                            <svg class="bottom-menu-icon" viewBox="0 0 24 24">
+                                <path d="M20,2H4c-1.1,0-1.99,0.9-1.99,2L2,22l4-4h14c1.1,0,2-0.9,2-2V4C22,2.9,21.1,2,20,2z M18,14H6v-2h12V14z M18,11H6V9h12V11z M18,8H6V6h12V8z"/>
+                            </svg>
+                            <span class="menu-font">피드백</span>
+                        </div>
+                    </div>
+                </div>
             </aside>
 
             <!-- Main Chat -->
@@ -651,10 +810,10 @@
 
                 <!-- Messages -->
                 <div id="messagesContainer" class="messages-container">
-                    <!-- Welcome Message - 박스 높이 더 줄이기 -->
-                    <div class="flex justify-center mb-6">
+                    <!-- Welcome Message - 원래 스타일로 복원 -->
+                    <div class="flex justify-center mb-8">
                         <div class="welcome-card">
-                            <div id="welcomeIcon" class="nori-icon nori-xl nori-health mx-auto mb-3"></div>
+                            <div id="welcomeIcon" class="nori-icon nori-xl nori-health mx-auto mb-4"></div>
                             <h3 class="welcome-title logo-font">AI 놀이터에 오신 것을 환영합니다!</h3>
                             <p class="welcome-subtitle menu-font">궁금한 것이 있으시면 언제든 물어보세요. 노리가 도와드릴게요!</p>
                         </div>
@@ -1078,9 +1237,9 @@
         function clearChat() {
             if (confirm('대화를 모두 삭제하시겠습니까?')) {
                 document.getElementById('messagesContainer').innerHTML = `
-                    <div class="flex justify-center mb-6">
+                    <div class="flex justify-center mb-8">
                         <div class="welcome-card">
-                            <div id="welcomeIcon" class="nori-icon nori-xl nori-${currentCategory} mx-auto mb-3"></div>
+                            <div id="welcomeIcon" class="nori-icon nori-xl nori-${currentCategory} mx-auto mb-4"></div>
                             <h3 class="welcome-title logo-font">새로운 대화를 시작하세요!</h3>
                             <p class="welcome-subtitle menu-font">궁금한 것이 있으시면 언제든 물어보세요. 노리가 도와드릴게요!</p>
                         </div>
@@ -1342,68 +1501,103 @@
                 }
             }, 2500); // 2.5초 후 실행
             
+            // 새로운 기능들 초기화
+            setupSearch();
+            setupBannerButtons();
+            
+            console.log('✅ 배너 및 메뉴 기능 초기화 완료');
+            
             console.log('✅ 페이지 로딩 완료');
         };
         
-        // 🔧 디버깅용 함수들 (강화됨)
-        window.testFunctions = {
-            // 추천 질문 강제 테스트
-            testRecommendation: (category = 'travel', question = '제주도 여행 추천해주세요') => {
-                console.log(`🧪 추천 질문 테스트: ${category} - ${question}`);
-                askRecommendedQuestion(category, question);
-            },
-            
-            // 현재 상태 확인
-            checkStatus: () => {
-                console.log('📊 현재 상태:');
-                console.log(`  - 현재 카테고리: ${currentCategory}`);
-                console.log(`  - 현재 탭: ${currentTab}`);
-                console.log(`  - 추천 카드 개수: ${document.querySelectorAll('.recommendation-card').length}`);
-                console.log(`  - 메시지 입력창: ${document.getElementById('messageInput') ? '✅' : '❌'}`);
-                console.log(`  - 시스템 메시지 개수: ${document.querySelectorAll('.system-message').length}`);
-            },
-            
-            // 추천 카드 클릭 이벤트 확인
-            checkCards: () => {
-                console.log('🃏 추천 카드 클릭 이벤트 확인:');
-                document.querySelectorAll('.recommendation-card').forEach((card, index) => {
-                    const title = card.querySelector('.card-title')?.textContent || 'No title';
-                    const hasClick = !!card.onclick;
-                    const hasListener = !!card._clickHandler;
-                    console.log(`  ${index + 1}. "${title}"`);
-                    console.log(`     onclick: ${hasClick ? '✅' : '❌'}`);
-                    console.log(`     listener: ${hasListener ? '✅' : '❌'}`);
-                });
-            },
-            
-            // 강제 셔플
-            forceShuffle: () => {
-                console.log('🔄 강제 셔플 실행...');
-                shuffleRecommendations();
-            },
-            
-            // 카테고리 변경 테스트
-            testCategoryChange: (category = 'travel') => {
-                console.log(`🔄 카테고리 변경 테스트: ${category}`);
-                setCategory(category);
-            },
-            
-            // 중복 메시지 테스트
-            testDuplicateMessage: () => {
-                console.log('🔁 중복 메시지 테스트...');
-                addSystemMessage('🔄 테스트 메시지입니다.');
-                setTimeout(() => addSystemMessage('🔄 테스트 메시지입니다.'), 500);
-            }
-        };
+        // 카테고리 버튼 클릭 시 호출되는 함수 (기존 setCategory를 감싸는 래퍼)
+        function onCategoryClick(category) {
+            console.log(`🖱️ 카테고리 버튼 클릭: ${category}`);
+            setCategory(category, false); // 환영 메시지 표시
+        }
         
-        // 개발자 도구 안내
-        console.log('🛠️ 디버깅 함수 사용법:');
-        console.log('  - testFunctions.testRecommendation("travel", "제주도 여행 추천해주세요")');
-        console.log('  - testFunctions.checkStatus()');
-        console.log('  - testFunctions.checkCards()');
-        console.log('  - testFunctions.forceShuffle()');
-        console.log('  - testFunctions.testCategoryChange("travel")');
-        console.log('  - testFunctions.testDuplicateMessage()');
+        // 새로운 기능 함수들 추가
+        function openSettings() {
+            console.log('설정 페이지 열기');
+            addSystemMessage('⚙️ 설정 기능은 곧 업데이트됩니다!');
+            // TODO: 설정 모달 또는 페이지 구현
+        }
+        
+        function openHelp() {
+            console.log('도움말 페이지 열기');
+            addSystemMessage(`
+                📚 AI 놀이터 사용법:
+                
+                • 카테고리별 전문 상담: 건강, 여행, 투자, 법률
+                • 추천 질문: 각 분야별 맞춤 질문 제공
+                • 대화 히스토리: 이전 대화 내용 확인
+                • 내보내기: 대화 내용을 파일로 저장
+                
+                더 궁금한 점이 있으시면 언제든 질문해주세요!
+            `);
+        }
+        
+        function openUpgrade() {
+            console.log('업그레이드 페이지 열기');
+            addSystemMessage('⭐ AI 놀이터 프리미엄 기능은 준비 중입니다!');
+            // TODO: 업그레이드 정보 모달 구현
+        }
+        
+        function openFeedback() {
+            console.log('피드백 페이지 열기');
+            addSystemMessage('💬 피드백을 남겨주세요! 여러분의 의견이 AI 놀이터를 더욱 발전시킵니다.');
+            // TODO: 피드백 폼 모달 구현
+        }
+        
+        // 배너 기능들
+        function startNewChat() {
+            clearChat();
+            addSystemMessage('🆕 새로운 대화를 시작했습니다!');
+        }
+        
+        function openModels() {
+            addSystemMessage('🤖 AI 모델 선택 기능은 곧 추가됩니다!');
+        }
+        
+        function openLab() {
+            addSystemMessage('🧪 실험실 기능은 개발 중입니다!');
+        }
+        
+        function openChatHistory() {
+            switchTab('history');
+            addSystemMessage('📋 대화 기록을 확인하세요!');
+        }
+        
+        // 검색 기능
+        function setupSearch() {
+            const searchBox = document.querySelector('.search-box');
+            if (searchBox) {
+                searchBox.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const searchTerm = this.value.trim();
+                        if (searchTerm) {
+                            addSystemMessage(`🔍 "${searchTerm}" 검색 기능은 곧 추가됩니다!`);
+                            this.value = '';
+                        }
+                    }
+                });
+            }
+        }
+        
+        // 배너 버튼들에 이벤트 리스너 추가
+        function setupBannerButtons() {
+            const bannerButtons = document.querySelectorAll('.banner-button');
+            bannerButtons.forEach((button, index) => {
+                button.addEventListener('click', () => {
+                    switch(index) {
+                        case 0: startNewChat(); break;
+                        case 1: openModels(); break;
+                        case 2: openLab(); break;
+                        case 3: openChatHistory(); break;
+                    }
+                });
+            });
+        }
     </script>
 </body>
 </html>
