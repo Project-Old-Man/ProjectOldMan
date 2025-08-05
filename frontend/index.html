@@ -589,10 +589,26 @@
             : 'http://localhost:8000';
 
         const categoryInfo = {
-            health: { title: '건강 상담', subtitle: '건강에 관한 궁금한 점을 물어보세요' },
-            travel: { title: '여행 상담', subtitle: '여행 계획과 정보를 도와드려요' },
-            investment: { title: '투자 상담', subtitle: '투자와 재테크 정보를 제공해요' },
-            legal: { title: '법률 상담', subtitle: '법률 관련 궁금증을 해결해드려요' }
+            health: { 
+                title: '건강 상담', 
+                subtitle: '건강에 관한 궁금한 점을 물어보세요',
+                prompt: '건강 전문 AI가 도움을 드릴게요!'
+            },
+            travel: { 
+                title: '여행 상담', 
+                subtitle: '여행 계획과 정보를 도움을 드려요',
+                prompt: '여행 전문 AI가 맞춤 정보를 제공할게요!'
+            },
+            investment: { 
+                title: '투자 상담', 
+                subtitle: '투자와 재테크 정보를 제공해요',
+                prompt: '투자 전문 AI가 안전한 정보를 알려드릴게요!'
+            },
+            legal: { 
+                title: '법률 상담', 
+                subtitle: '법률 관련 궁금증을 해결해드려요',
+                prompt: '법률 전문 AI가 기본 정보를 제공할게요!'
+            }
         };
 
         // 탭 전환
@@ -631,6 +647,12 @@
             
             // 노리 아이콘 업데이트 (강제 새로고침)
             setTimeout(() => updateNoriIcons(category), 100);
+
+            // 카테고리별 환영 메시지 표시
+            setTimeout(() => {
+                const welcomeMessage = `안녕하세요! ${categoryInfo[category].prompt}`;
+                addMessage(welcomeMessage, 'bot');
+            }, 500);
         }
 
         // 노리 아이콘 업데이트 - 새로운 여백 반영
@@ -803,7 +825,11 @@
                     body: JSON.stringify({
                         question: message,
                         user_id: 'user_' + Date.now(),
-                        context: { page: currentCategory, timestamp: new Date().toISOString() }
+                        context: { 
+                            page: currentCategory,
+                            timestamp: new Date().toISOString(),
+                            category_info: categoryInfo[currentCategory]
+                        }
                     })
                 });
 
@@ -812,12 +838,40 @@
                 if (response.ok) {
                     const data = await response.json();
                     addMessage(data.response, 'bot');
+                    
+                    // 카테고리별 추가 안내 메시지
+                    if (data.category && categoryInfo[data.category]) {
+                        setTimeout(() => {
+                            addHelpMessage(data.category);
+                        }, 1000);
+                    }
                 } else {
                     addMessage('죄송합니다. 서버 연결에 문제가 있습니다.', 'bot');
                 }
             } catch (error) {
                 hideTypingIndicator();
                 addMessage('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'bot');
+            }
+        }
+
+        function addHelpMessage(category) {
+            const helpMessages = {
+                health: "더 구체적인 건강 상담을 원하시면 '혈압', '당뇨', '운동', '식단' 등의 키워드로 질문해보세요!",
+                travel: "여행지, 일정, 준비물 등에 대해 더 자세히 문의하실 수 있어요!",
+                investment: "안전한 투자, 연금, 재테크 등에 대해 더 질문해보세요!",
+                legal: "계약, 상속, 법률상담 등에 대해 더 문의하실 수 있어요!"
+            };
+            
+            if (helpMessages[category]) {
+                const helpDiv = document.createElement('div');
+                helpDiv.className = 'text-center my-4';
+                helpDiv.innerHTML = `
+                    <div class="inline-block bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2 text-sm text-yellow-800">
+                        💡 ${helpMessages[category]}
+                    </div>
+                `;
+                document.getElementById('messagesContainer').appendChild(helpDiv);
+                document.getElementById('messagesContainer').scrollTop = document.getElementById('messagesContainer').scrollHeight;
             }
         }
 
