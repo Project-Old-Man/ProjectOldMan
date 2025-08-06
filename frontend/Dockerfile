@@ -1,20 +1,20 @@
 FROM nginx:alpine
 
-# 기본 nginx 설정 제거
-RUN rm /etc/nginx/conf.d/default.conf
+# 정적 파일 복사
+COPY . /usr/share/nginx/html
 
-# 커스텀 nginx 설정 추가
-COPY nginx.conf /etc/nginx/conf.d/
+# Nginx 설정 복사 (있는 경우)
+# COPY nginx.conf /etc/nginx/nginx.conf
 
-# 리팩토링된 파일들 복사
-COPY index.html /usr/share/nginx/html/
-COPY styles.css /usr/share/nginx/html/
-COPY app.js /usr/share/nginx/html/
+# 포트 노출
+EXPOSE 80
 
-# components 폴더 전체 복사
-COPY components/ /usr/share/nginx/html/components/
+# 헬스체크
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost/ || exit 1
 
-# images 폴더 전체 복사 (캐시 무효화를 위한 타임스탬프 추가)
+# Nginx 실행
+CMD ["nginx", "-g", "daemon off;"]
 COPY images/ /usr/share/nginx/html/images/
 
 # 캐시 무효화를 위한 타임스탬프 파일 생성

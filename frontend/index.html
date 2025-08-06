@@ -3,28 +3,198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 놀이터 - 중장년층 커뮤니티</title>
-    
-    <!-- External CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Gaegu:wght@300;400;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css">
+    <title>Multi-Category RAG Chat</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 70%;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            text-align: right;
+        }
+        .bot-message {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            margin-right: auto;
+        }
+        .category-tag {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+        .input-container {
+            display: flex;
+            padding: 20px;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+        }
+        .input-field {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+        }
+        .send-button {
+            margin-left: 10px;
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .send-button:hover {
+            background-color: #0056b3;
+        }
+        .send-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
 </head>
-<body style="margin: 0 !important; padding: 0 !important; overflow: hidden !important;">
-    <div class="main-layout" style="height: 100vh !important; min-height: 100vh !important; max-height: 100vh !important; display: flex !important; flex-direction: column !important; overflow: hidden !important;">
-        <!-- Header Component -->
-        <div id="header-container" style="flex-shrink: 0 !important;"></div>
-
-        <div class="content-area" style="flex: 1 !important; display: flex !important; overflow: hidden !important; height: calc(100vh - 80px) !important;">
-            <!-- Sidebar Component -->
-            <div id="sidebar-container" style="width: 320px !important; min-width: 320px !important; max-width: 320px !important; flex-shrink: 0 !important;"></div>
-
-            <!-- Chat Component -->
-            <div id="chat-container" style="flex: 1 !important; display: flex !important; flex-direction: column !important; height: 100% !important; overflow: hidden !important;"></div>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Multi-Category RAG Assistant</h1>
+            <p>건강, 여행, 투자, 법률 질문에 답해드립니다</p>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message bot-message">
+                <div class="category-tag">system</div>
+                안녕하세요! 건강, 여행, 투자, 법률에 관한 질문을 해보세요. 😊
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" 
+                   id="messageInput" 
+                   class="input-field" 
+                   placeholder="질문을 입력하세요..."
+                   onkeypress="if(event.key==='Enter') sendMessage()">
+            <button id="sendButton" class="send-button" onclick="sendMessage()">전송</button>
         </div>
     </div>
 
-    <!-- External JavaScript -->
-    <script src="./app.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:9000/api';
+        
+        function addMessage(content, isUser = false, category = null) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            
+            if (!isUser && category) {
+                messageDiv.innerHTML = `
+                    <div class="category-tag">${category}</div>
+                    ${content}
+                `;
+            } else {
+                messageDiv.textContent = content;
+            }
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, true);
+            
+            // Clear input and disable button
+            input.value = '';
+            sendButton.disabled = true;
+            sendButton.textContent = '처리중...';
+            
+            // Add loading message
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message bot-message loading';
+            loadingDiv.textContent = '답변을 생성하고 있습니다...';
+            document.getElementById('chatContainer').appendChild(loadingDiv);
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Remove loading message
+                loadingDiv.remove();
+                
+                // Add bot response
+                addMessage(data.response, false, data.category);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                loadingDiv.remove();
+                addMessage('죄송합니다. 오류가 발생했습니다. 다시 시도해주세요.', false, 'error');
+            } finally {
+                // Re-enable button
+                sendButton.disabled = false;
+                sendButton.textContent = '전송';
+                input.focus();
+            }
+        }
+        
+        // Focus input on page load
+        document.getElementById('messageInput').focus();
+    </script>
 </body>
 </html>

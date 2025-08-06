@@ -3,8 +3,8 @@ let currentTab = 'categories';
 let chatHistory = [];
 
 const BACKEND_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:8000' 
-    : 'http://localhost:8000';
+    ? 'http://localhost:9000' 
+    : 'http://localhost:9000';
 
 const categoryInfo = {
     health: { 
@@ -416,192 +416,432 @@ function loadChatHistory() {
 }
 
 function autoResize(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = Math.min(textarea.scrollHeight, 60) + 'px';
-}
-
-function handleKeyPress(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        sendMessage();
-    }
-}
-
-async function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const message = input.value.trim();
+    // COMPLETELY FIXED - no dynamic resizing at all
+    const fixedTextareaHeight = 80;
+    const fixedContainerHeight = 140;
     
-    if (!message) return;
+    // Force textarea to always be the same height - no calculations needed
+    textarea.style.height = fixedTextareaHeight + 'px';
+    textarea.style.minHeight = fixedTextareaHeight + 'px';
+    textarea.style.maxHeight = fixedTextareaHeight + 'px';
     
-    addMessage(message, 'user');
-    input.value = '';
-    input.style.height = 'auto';
-    
-    chatHistory.push({
-        question: message,
-        category: categoryInfo[currentCategory].title,
-        time: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
-    });
-    
-    showTypingIndicator();
-    
-    try {
-        const response = await fetch(`${BACKEND_URL}/query`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                question: message,
-                user_id: 'user_' + Date.now(),
-                context: { 
-                    page: currentCategory,
-                    timestamp: new Date().toISOString(),
-                    category_info: categoryInfo[currentCategory]
-                }
-            })
-        });
-
-        hideTypingIndicator();
-
-        if (response.ok) {
-            const data = await response.json();
-            addMessage(data.response, 'bot');
-            
-            if (data.category && categoryInfo[data.category]) {
-                setTimeout(() => {
-                    addHelpMessage(data.category);
-                }, 1000);
-            }
-        } else {
-            addMessage('죄송합니다. 서버 연결에 문제가 있습니다.', 'bot');
+    // Get the dynamic input area container
+    const inputArea = document.getElementById('dynamicInputArea');
+    if (inputArea) {
+        // Container is COMPLETELY FIXED - never changes
+        inputArea.style.height = `${fixedContainerHeight}px`;
+        inputArea.style.minHeight = `${fixedContainerHeight}px`;
+        inputArea.style.maxHeight = `${fixedContainerHeight}px`;
+        
+        // Position is absolutely fixed
+        inputArea.style.position = 'fixed';
+        inputArea.style.bottom = '0';
+        inputArea.style.left = '320px';
+        inputArea.style.right = '0';
+        inputArea.style.zIndex = '1000';
+        inputArea.style.transform = 'none';
+        
+        // IDENTICAL container styling - never changes
+        inputArea.style.background = 'linear-gradient(to right, #f9fafb, #f3f4f6)';
+        inputArea.style.borderTop = '2px solid #e5e7eb';
+        inputArea.style.padding = '30px 24px';
+        inputArea.style.display = 'flex';
+        inputArea.style.alignItems = 'center';
+        inputArea.style.gap = '16px';
+        inputArea.style.boxSizing = 'border-box';
+        
+        // COMPLETELY FIXED textarea styling - identical every time
+        textarea.style.border = '2px solid #e5e7eb';
+        textarea.style.borderRadius = '16px';
+        textarea.style.background = 'white';
+        textarea.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+        textarea.style.padding = '20px 18px';
+        textarea.style.fontSize = '16px';
+        textarea.style.lineHeight = '1.5';
+        textarea.style.outline = 'none';
+        textarea.style.resize = 'none';
+        textarea.style.width = '100%';
+        textarea.style.height = fixedTextareaHeight + 'px';
+        textarea.style.minHeight = fixedTextareaHeight + 'px';
+        textarea.style.maxHeight = fixedTextareaHeight + 'px';
+        textarea.style.overflowY = 'auto';
+        textarea.style.boxSizing = 'border-box';
+        textarea.style.verticalAlign = 'top'; // Prevent any alignment shifts
+        textarea.style.display = 'block'; // Ensure consistent display
+        
+        // COMPLETELY FIXED send button styling
+        const sendButton = document.getElementById('sendButton');
+        if (sendButton) {
+            sendButton.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+            sendButton.style.border = 'none';
+            sendButton.style.borderRadius = '16px';
+            sendButton.style.boxShadow = '0 4px 12px rgba(251, 191, 36, 0.3)';
+            sendButton.style.padding = '20px 32px';
+            sendButton.style.height = '80px';
+            sendButton.style.minHeight = '80px';
+            sendButton.style.maxHeight = '80px';
+            sendButton.style.minWidth = '100px';
+            sendButton.style.flexShrink = '0';
+            sendButton.style.display = 'flex';
+            sendButton.style.alignItems = 'center';
+            sendButton.style.justifyContent = 'center';
+            sendButton.style.cursor = 'pointer';
+            sendButton.style.fontSize = '18px';
+            sendButton.style.fontWeight = '700';
+            sendButton.style.color = 'white';
+            sendButton.style.boxSizing = 'border-box';
+            sendButton.style.verticalAlign = 'top'; // Prevent alignment shifts
         }
-    } catch (error) {
-        hideTypingIndicator();
-        addMessage('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'bot');
+        
+        // Message container height is also completely fixed
+        const messagesContainer = document.getElementById('messagesContainer');
+        if (messagesContainer) {
+            const chatHeaderHeight = 100;
+            const topBannerHeight = 70;
+            const totalUsedHeight = topBannerHeight + chatHeaderHeight + fixedContainerHeight;
+            const newMessagesHeight = `calc(100vh - ${totalUsedHeight}px)`;
+            
+            messagesContainer.style.height = newMessagesHeight;
+            messagesContainer.style.minHeight = newMessagesHeight;
+            messagesContainer.style.maxHeight = newMessagesHeight;
+            messagesContainer.style.overflowY = 'auto';
+            messagesContainer.style.paddingBottom = '20px';
+            
+            setTimeout(() => {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 50);
+        }
     }
 }
 
-function addHelpMessage(category) {
-    const helpMessages = {
-        health: "더 구체적인 건강 상담을 원하시면 '혈압', '당뇨', '운동', '식단' 등의 키워드로 질문해보세요!",
-        travel: "여행지, 일정, 준비물 등에 대해 더 자세히 문의하실 수 있어요!",
-        investment: "안전한 투자, 연금, 재테크 등에 대해 더 질문해보세요!",
-        legal: "계약, 상속, 법률상담 등에 대해 더 문의하실 수 있어요!"
-    };
+// Initialize input area with fixed styling on page load
+function initializeInputArea() {
+    const inputArea = document.getElementById('dynamicInputArea');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
     
-    if (helpMessages[category]) {
-        const helpDiv = document.createElement('div');
-        helpDiv.className = 'text-center my-4';
-        helpDiv.innerHTML = `
-            <div class="inline-block bg-yellow-50 border border-yellow-200 rounded-lg px-4 py-2 text-sm text-yellow-800">
-                💡 ${helpMessages[category]}
-            </div>
-        `;
-        document.getElementById('messagesContainer').appendChild(helpDiv);
-        document.getElementById('messagesContainer').scrollTop = document.getElementById('messagesContainer').scrollHeight;
+    const fixedContainerHeight = 140;
+    const fixedTextareaHeight = 80;
+    
+    if (inputArea) {
+        // Set fixed container styling immediately
+        inputArea.style.height = `${fixedContainerHeight}px`;
+        inputArea.style.minHeight = `${fixedContainerHeight}px`;
+        inputArea.style.maxHeight = `${fixedContainerHeight}px`;
+        inputArea.style.position = 'fixed';
+        inputArea.style.bottom = '0';
+        inputArea.style.left = '320px';
+        inputArea.style.right = '0';
+        inputArea.style.zIndex = '1000';
+        inputArea.style.transform = 'none';
+        inputArea.style.background = 'linear-gradient(to right, #f9fafb, #f3f4f6)';
+        inputArea.style.borderTop = '2px solid #e5e7eb';
+        inputArea.style.padding = '30px 24px';
+        inputArea.style.display = 'flex';
+        inputArea.style.alignItems = 'center';
+        inputArea.style.gap = '16px';
+        inputArea.style.boxSizing = 'border-box';
+    }
+    
+    if (messageInput) {
+        // Set fixed textarea styling immediately
+        messageInput.style.height = fixedTextareaHeight + 'px';
+        messageInput.style.minHeight = fixedTextareaHeight + 'px';
+        messageInput.style.maxHeight = fixedTextareaHeight + 'px';
+        messageInput.style.border = '2px solid #e5e7eb';
+        messageInput.style.borderRadius = '16px';
+        messageInput.style.background = 'white';
+        messageInput.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+        messageInput.style.padding = '20px 18px';
+        messageInput.style.fontSize = '16px';
+        messageInput.style.lineHeight = '1.5';
+        messageInput.style.outline = 'none';
+        messageInput.style.resize = 'none';
+        messageInput.style.width = '100%';
+        messageInput.style.overflowY = 'auto';
+        messageInput.style.boxSizing = 'border-box';
+        messageInput.style.verticalAlign = 'top';
+        messageInput.style.display = 'block';
+    }
+    
+    if (sendButton) {
+        // Set fixed button styling immediately
+        sendButton.style.background = 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)';
+        sendButton.style.border = 'none';
+        sendButton.style.borderRadius = '16px';
+        sendButton.style.boxShadow = '0 4px 12px rgba(251, 191, 36, 0.3)';
+        sendButton.style.padding = '20px 32px';
+        sendButton.style.height = '80px';
+        sendButton.style.minHeight = '80px';
+        sendButton.style.maxHeight = '80px';
+        sendButton.style.minWidth = '100px';
+        sendButton.style.fontSize = '18px';
+        sendButton.style.display = 'flex';
+        sendButton.style.alignItems = 'center';
+        sendButton.style.justifyContent = 'center';
+        sendButton.style.flexShrink = '0';
+        sendButton.style.cursor = 'pointer';
+        sendButton.style.fontWeight = '700';
+        sendButton.style.color = 'white';
+        sendButton.style.boxSizing = 'border-box';
+        sendButton.style.verticalAlign = 'top';
     }
 }
 
-function addMessage(text, sender) {
-    const container = document.getElementById('messagesContainer');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = `chat-message mb-5 flex`;
-    
-    const noriClass = `nori-${currentCategory}`;
-    
-    const messageContent = `
-        <div class="${sender === 'user' ? 'message-user' : 'message-bot'}">
-            ${sender === 'bot' ? `<div class="flex items-start space-x-3"><div class="nori-icon ${noriClass} mt-1"></div><div>` : '' }
-            <p class="leading-relaxed message-font">${text}</p>
-            ${sender === 'bot' ? '</div></div>' : '' }
-        </div>
-    `;
-    
-    messageDiv.innerHTML = messageContent;
-    container.appendChild(messageDiv);
-    container.scrollTop = container.scrollHeight;
-}
-
-function showTypingIndicator() {
-    document.getElementById('typingIndicator').classList.remove('hidden');
-    document.getElementById('messagesContainer').scrollTop = document.getElementById('messagesContainer').scrollHeight;
-}
-
-function hideTypingIndicator() {
-    document.getElementById('typingIndicator').classList.add('hidden');
-}
-
-// 카테고리 버튼 클릭 시 호출되는 함수
+// 카테고리 클릭 핸들러 (사이드바용)
 function onCategoryClick(category) {
-    console.log(`🖱️ 카테고리 버튼 클릭: ${category}`);
-    setCategory(category, false);
+    console.log(`🔄 사이드바에서 카테고리 클릭: ${category}`);
+    setCategory(category);
+    // 카테고리 탭으로 전환 (필요시)
+    if (currentTab !== 'categories') {
+        switchTab('categories');
+    }
 }
 
-// 새로운 기능 함수들
-function openSettings() {
-    console.log('설정 페이지 열기');
-    addSystemMessage('⚙️ 설정 기능은 곧 업데이트됩니다!');
-}
-
-function openHelp() {
-    console.log('도움말 페이지 열기');
-    addSystemMessage(`
-        📚 AI 놀이터 사용법:
-        
-        • 카테고리별 전문 상담: 건강, 여행, 투자, 법률
-        • 추천 질문: 각 분야별 맞춤 질문 제공
-        • 대화 히스토리: 이전 대화 내용 확인
-        • 내보내기: 대화 내용을 파일로 저장
-        
-        더 궁금한 점이 있으시면 언제든 질문해주세요!
-    `);
-}
-
-function openUpgrade() {
-    console.log('업그레이드 페이지 열기');
-    addSystemMessage('⭐ AI 놀이터 프리미엄 기능은 준비 중입니다!');
-}
-
-function openFeedback() {
-    console.log('피드백 페이지 열기');
-    addSystemMessage('💬 피드백을 남겨주세요! 여러분의 의견이 AI 놀이터를 더욱 발전시킵니다.');
-}
-
-function startNewChat() {
-    clearChat();
-    addSystemMessage('🆕 새로운 대화를 시작했습니다!');
-}
-
-function openModels() {
-    addSystemMessage('🤖 AI 모델 선택 기능은 곧 추가됩니다!');
-}
-
-function openLab() {
-    addSystemMessage('🧪 실험실 기능은 개발 중입니다!');
-}
-
-function openChatHistory() {
-    switchTab('history');
-    addSystemMessage('📋 대화 기록을 확인하세요!');
-}
-
+// 검색 기능 설정
 function setupSearch() {
     const searchBox = document.querySelector('.search-box');
     if (searchBox) {
-        searchBox.addEventListener('keypress', function(e) {
+        searchBox.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            console.log(`🔍 검색어: ${query}`);
+            // 검색 기능 구현 (추후 확장)
+        });
+        
+        searchBox.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
-                const searchTerm = this.value.trim();
-                if (searchTerm) {
-                    addSystemMessage(`🔍 "${searchTerm}" 검색 기능은 곧 추가됩니다!`);
-                    this.value = '';
-                }
+                const query = e.target.value.toLowerCase();
+                console.log(`🔍 검색 실행: ${query}`);
+                // 검색 실행 로직
             }
         });
     }
 }
 
+// 메시지 전송 함수
+async function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    
+    if (!messageInput) return;
+    
+    const message = messageInput.value.trim();
+    if (!message) return;
+    
+    // 버튼 비활성화
+    if (sendButton) {
+        sendButton.disabled = true;
+        const buttonText = sendButton.querySelector('span');
+        if (buttonText) {
+            buttonText.textContent = '전송 중...';
+        }
+    }
+    
+    try {
+        // 사용자 메시지 추가
+        addMessage(message, 'user');
+        
+        // 입력창 초기화
+        messageInput.value = '';
+        autoResize(messageInput);
+        
+        // 타이핑 인디케이터 표시
+        showTypingIndicator();
+        
+        // 백엔드로 메시지 전송
+        try {
+            console.log(`📡 백엔드 호출: ${BACKEND_URL}/chat`);
+            console.log(`📝 메시지: ${message}`);
+            console.log(`📂 카테고리: ${currentCategory}`);
+            
+            const response = await fetch(`${BACKEND_URL}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    category: currentCategory,
+                    user_id: `user_${Date.now()}`
+                })
+            });
+            
+            console.log(`📡 응답 상태: ${response.status}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log(`✅ 백엔드 응답 성공:`, data);
+                
+                hideTypingIndicator();
+                
+                // 응답받은 카테고리로 UI 업데이트
+                if (data.category && data.category !== currentCategory) {
+                    setCategory(data.category, true);
+                }
+                
+                addMessage(data.response || '죄송합니다. 응답을 받지 못했습니다.', 'bot');
+                
+                // 채팅 히스토리에 추가
+                chatHistory.push({
+                    question: message,
+                    answer: data.response,
+                    category: categoryInfo[data.category]?.title || '일반',
+                    time: new Date().toLocaleTimeString()
+                });
+                
+            } else {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+        } catch (backendError) {
+            console.error('❌ 백엔드 연결 실패:', backendError);
+            hideTypingIndicator();
+            
+            let errorMessage = '백엔드 서버에 연결할 수 없습니다.';
+            
+            if (backendError.message.includes('fetch')) {
+                errorMessage += '\n\n💡 해결 방법:\n1. 백엔드 서버가 실행 중인지 확인\n2. http://localhost:9000/health 접속 테스트\n3. 방화벽 설정 확인';
+            }
+            
+            addMessage(errorMessage, 'bot');
+        }
+        
+    } catch (error) {
+        console.error('메시지 전송 오류:', error);
+        hideTypingIndicator();
+        addMessage('죄송합니다. 일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', 'bot');
+    } finally {
+        // 버튼 활성화
+        if (sendButton) {
+            sendButton.disabled = false;
+            const buttonText = sendButton.querySelector('span');
+            if (buttonText) {
+                buttonText.textContent = '전송';
+            }
+        }
+    }
+}
+
+// 메시지 추가 함수
+function addMessage(text, sender) {
+    const container = document.getElementById('messagesContainer');
+    if (!container) return;
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `chat-message flex ${sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`;
+    
+    const timestamp = new Date().toLocaleTimeString();
+    
+    if (sender === 'user') {
+        messageDiv.innerHTML = `
+            <div class="message-user max-w-xs lg:max-w-md px-4 py-3 rounded-lg bg-amber-500 text-white">
+                <div class="message-text menu-font">${text}</div>
+                <div class="message-time text-xs text-amber-100 mt-1">${timestamp}</div>
+            </div>
+        `;
+    } else {
+        messageDiv.innerHTML = `
+            <div class="flex items-start space-x-3 max-w-xs lg:max-w-md">
+                <div id="typingIcon" class="nori-icon nori-${currentCategory} flex-shrink-0"></div>
+                <div class="message-bot bg-gray-100 px-4 py-3 rounded-lg">
+                    <div class="message-text menu-font text-gray-800">${text}</div>
+                    <div class="message-time text-xs text-gray-500 mt-1">${timestamp}</div>
+                </div>
+            </div>
+        `;
+    }
+    
+    container.appendChild(messageDiv);
+    container.scrollTop = container.scrollHeight;
+    
+    // 노리 아이콘 업데이트
+    updateNoriIcons(currentCategory);
+}
+
+// 타이핑 인디케이터
+function showTypingIndicator() {
+    const container = document.getElementById('messagesContainer');
+    if (!container) return;
+    
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typingIndicator';
+    typingDiv.className = 'chat-message flex justify-start mb-4';
+    typingDiv.innerHTML = `
+        <div class="flex items-start space-x-3">
+            <div class="nori-icon nori-${currentCategory} flex-shrink-0"></div>
+            <div class="bg-gray-100 px-4 py-3 rounded-lg">
+                <div class="typing-animation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(typingDiv);
+    container.scrollTop = container.scrollHeight;
+    
+    // 노리 아이콘 업데이트
+    updateNoriIcons(currentCategory);
+}
+
+function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typingIndicator');
+    if (typingIndicator) {
+        typingIndicator.remove();
+    }
+}
+
+// 배너 버튼 핸들러들
+function startNewChat() {
+    console.log('새 채팅 시작');
+    clearChat();
+}
+
+function openModels() {
+    console.log('AI 모델 열기');
+    showModelInfo();
+}
+
+function openLab() {
+    console.log('실험실 열기');
+    addSystemMessage('🧪 실험실 기능은 곧 추가될 예정입니다.');
+}
+
+function openChatHistory() {
+    console.log('대화 기록 열기');
+    switchTab('history');
+}
+
+// 사이드바 하단 메뉴 핸들러들
+function openSettings() {
+    console.log('설정 열기');
+    addSystemMessage('⚙️ 설정 기능은 곧 추가될 예정입니다.');
+}
+
+function openHelp() {
+    console.log('도움말 열기');
+    addSystemMessage('❓ 도움말 기능은 곧 추가될 예정입니다.');
+}
+
+function openUpgrade() {
+    console.log('업그레이드 열기');
+    addSystemMessage('⭐ 업그레이드 기능은 곧 추가될 예정입니다.');
+}
+
+function openFeedback() {
+    console.log('피드백 열기');
+    addSystemMessage('💬 피드백 기능은 곧 추가될 예정입니다.');
+}
+
+// 배너 버튼 설정 함수 (수정)
 function setupBannerButtons() {
     const bannerButtons = document.querySelectorAll('.banner-button');
     bannerButtons.forEach((button, index) => {
+        // 폰트 크기를 더 크게 설정
+        button.style.fontSize = '18px';
+        button.style.fontWeight = '700';
+        
         button.addEventListener('click', () => {
             switch(index) {
                 case 0: startNewChat(); break;
@@ -611,6 +851,60 @@ function setupBannerButtons() {
             }
         });
     });
+    
+    // 배너 전체 스타일링 확실히 적용
+    const bannerContent = document.querySelector('.banner-content');
+    if (bannerContent) {
+        bannerContent.style.display = 'flex';
+        bannerContent.style.justifyContent = 'space-between';
+        bannerContent.style.alignItems = 'center';
+        bannerContent.style.width = '100%';
+        bannerContent.style.padding = '0 32px';
+        bannerContent.style.height = '100%';
+        bannerContent.style.boxSizing = 'border-box';
+    }
+    
+    // 왼쪽 섹션 스타일링
+    const bannerLeft = document.querySelector('.banner-left');
+    if (bannerLeft) {
+        bannerLeft.style.display = 'flex';
+        bannerLeft.style.alignItems = 'center';
+        bannerLeft.style.gap = '32px';
+        bannerLeft.style.flexShrink = '0';
+    }
+    
+    // 로고 섹션 스타일링
+    const logoSection = document.querySelector('.logo-section');
+    if (logoSection) {
+        logoSection.style.display = 'flex';
+        logoSection.style.alignItems = 'center';
+        logoSection.style.gap = '16px';
+    }
+    
+    // 버튼 그룹 스타일링
+    const buttonGroup = document.querySelector('.button-group');
+    if (buttonGroup) {
+        buttonGroup.style.display = 'flex';
+        buttonGroup.style.alignItems = 'center';
+        buttonGroup.style.gap = '12px';
+    }
+    
+    // 오른쪽 섹션 스타일링
+    const bannerRight = document.querySelector('.banner-right');
+    if (bannerRight) {
+        bannerRight.style.display = 'flex';
+        bannerRight.style.alignItems = 'center';
+        bannerRight.style.gap = '16px';
+        bannerRight.style.flexShrink = '0';
+    }
+    
+    // 로고 텍스트 크기 조정
+    const logoText = document.querySelector('.logo-font, h1');
+    if (logoText) {
+        logoText.style.fontSize = '32px';
+        logoText.style.fontWeight = '800';
+        logoText.style.margin = '0';
+    }
 }
 
 // 페이지 로드시 초기화
@@ -627,12 +921,37 @@ window.onload = async function() {
         setTimeout(() => {
             setupSearch();
             setupBannerButtons();
+            initializeInputArea();
+            
+            // 모델 정보 로드
+            loadModelInfo();
+            
+            // 대화 초기화 및 내보내기 버튼 폰트 크기 조정
+            const clearButton = document.querySelector('[onclick="clearChat()"]');
+            const exportButton = document.querySelector('[onclick="exportChat()"]');
+            
+            if (clearButton) {
+                clearButton.style.fontSize = '16px'; // 더 큰 폰트
+                clearButton.style.fontWeight = '700'; // 더 굵은 폰트
+            }
+            
+            if (exportButton) {
+                exportButton.style.fontSize = '16px'; // 더 큰 폰트
+                exportButton.style.fontWeight = '700'; // 더 굵은 폰트
+            }
+            
+            // 사이드바의 모든 텍스트 버튼들도 폰트 크기 증가
+            const sidebarButtons = document.querySelectorAll('.sidebar button, .sidebar .menu-item');
+            sidebarButtons.forEach(button => {
+                button.style.fontSize = '15px';
+                button.style.fontWeight = '600';
+            });
+            
             console.log('✅ 이벤트 설정 완료');
         }, 100);
         
     } catch (error) {
         console.error('❌ 컴포넌트 로딩 중 오류:', error);
-        // 컴포넌트 로딩 실패시 기본 구조로 폴백
         createFallbackStructure();
     }
     
@@ -654,11 +973,16 @@ window.onload = async function() {
         });
     }, 200);
     
-    // 백엔드 연결 테스트
+    // 백엔드 연결 테스트 (수정)
     try {
         const response = await fetch(`${BACKEND_URL}/health`);
         if (response.ok) {
+            const healthData = await response.json();
             console.log('✅ 백엔드 연결 성공');
+            addSystemMessage(`🟢 백엔드 서버 연결 성공! 사용 중인 모델: ${healthData.model || 'Unknown'}`);
+            
+            // 모델 정보 업데이트
+            setTimeout(loadModelInfo, 500);
         } else {
             console.log('⚠️ 백엔드 연결 실패');
         }
@@ -684,35 +1008,88 @@ window.onload = async function() {
     console.log('✅ 페이지 로딩 완료');
 };
 
-// 폴백 구조 생성 함수
-function createFallbackStructure() {
-    console.log('🔄 폴백 구조 생성 중...');
+// 모델 정보 조회 및 표시
+async function loadModelInfo() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/model-info`);
+        if (response.ok) {
+            const data = await response.json();
+            updateModelStatus(data.model_info);
+            console.log('✅ 모델 정보 로드 성공:', data.model_info);
+        } else {
+            console.log('⚠️ 모델 정보 로드 실패');
+            updateModelStatus({ name: 'Unknown', status: 'error' });
+        }
+    } catch (error) {
+        console.error('❌ 모델 정보 로드 오류:', error);
+        updateModelStatus({ name: 'Offline', status: 'offline' });
+    }
+}
+
+// 모델 상태 UI 업데이트
+function updateModelStatus(modelInfo) {
+    const modelNameElement = document.getElementById('modelName');
+    const statusIndicator = document.querySelector('.status-indicator');
     
-    // 헤더 폴백
-    document.getElementById('header-container').innerHTML = `
-        <header class="top-banner">
-            <div class="banner-content">
-                <h1 class="text-2xl font-bold text-amber-900 logo-font">AI 놀이터</h1>
-                <div>로딩 중...</div>
-            </div>
-        </header>
-    `;
+    if (modelNameElement) {
+        modelNameElement.textContent = modelInfo.name || 'Unknown';
+    }
     
-    // 사이드바 폴백  
-    document.getElementById('sidebar-container').innerHTML = `
-        <aside class="sidebar bg-gradient-to-b from-gray-50 to-gray-100 border-r-2 border-gray-200">
-            <div class="p-6">
-                <div class="text-center">컴포넌트 로딩 중...</div>
-            </div>
-        </aside>
-    `;
-    
-    // 채팅 영역 폴백
-    document.getElementById('chat-container').innerHTML = `
-        <main class="chat-container">
-            <div class="p-6">
-                <div class="text-center">채팅 영역 로딩 중...</div>
-            </div>
-        </main>
-    `;
+    if (statusIndicator) {
+        // 상태에 따른 색상 변경
+        switch (modelInfo.status) {
+            case 'loaded':
+            case 'active':
+                statusIndicator.style.background = '#10b981'; // green
+                break;
+            case 'mock':
+                statusIndicator.style.background = '#f59e0b'; // yellow
+                break;
+            case 'error':
+            case 'file_not_found':
+            case 'load_error':
+                statusIndicator.style.background = '#ef4444'; // red
+                break;
+            default:
+                statusIndicator.style.background = '#6b7280'; // gray
+        }
+    }
+}
+
+// 모델 정보 상세 표시
+async function showModelInfo() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/model-info`);
+        if (response.ok) {
+            const data = await response.json();
+            const modelInfo = data.model_info;
+            
+            const statusText = {
+                'loaded': '로드됨 ✅',
+                'active': '활성화됨 ✅', 
+                'mock': 'Mock 모드 🟡',
+                'file_not_found': '파일 없음 ❌',
+                'load_error': '로드 오류 ❌',
+                'dependency_missing': '의존성 누락 ❌',
+                'offline': '오프라인 ⚫'
+            };
+            
+            const availableModels = modelInfo.available_models || [];
+            const availableText = availableModels.length > 0 
+                ? `\n\n🗂️ 사용 가능한 모델:\n${availableModels.map(m => `• ${m.name} (${(m.size / 1024 / 1024).toFixed(1)}MB)`).join('\n')}`
+                : '\n\n📁 models/ 디렉토리에 모델 파일이 없습니다.';
+            
+            addSystemMessage(`🤖 현재 AI 모델 정보:
+📋 이름: ${modelInfo.name}
+📊 상태: ${statusText[modelInfo.status] || modelInfo.status}
+📂 경로: ${modelInfo.path}
+🔧 타입: ${modelInfo.type}${availableText}`);
+            
+        } else {
+            addSystemMessage('❌ 모델 정보를 가져올 수 없습니다.');
+        }
+    } catch (error) {
+        console.error('모델 정보 조회 오류:', error);
+        addSystemMessage('❌ 모델 정보 조회 중 오류가 발생했습니다.');
+    }
 }

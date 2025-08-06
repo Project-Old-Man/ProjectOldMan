@@ -80,3 +80,7 @@ yarn-error.log*
 # Vector index and metadata files
 backend/vector/faiss.index
 backend/vector/faiss_meta.json
+
+# models
+model/tinyllama.gguf
+backend/models/tinyllama.gguf
