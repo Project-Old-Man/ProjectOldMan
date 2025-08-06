@@ -115,6 +115,7 @@ body {
     overflow: hidden !important;
     height: calc(100vh - 80px) !important;
     min-height: calc(100vh - 80px) !important;
+    max-height: calc(100vh - 80px) !important;
 }
 
 .sidebar {
@@ -133,7 +134,7 @@ body {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
-    min-height: calc(100vh - 80px) !important;
+    min-height: 0 !important;
     overflow: hidden !important;
 }
 
@@ -141,7 +142,7 @@ body {
     flex: 1 !important;
     overflow-y: auto !important;
     padding: 24px !important;
-    height: calc(100vh - 80px - 120px) !important; /* 헤더(80px) + 입력영역(120px) 제외 */
+    min-height: 0 !important;
 }
 
 /* 입력 영역 정렬 개선 */
@@ -149,9 +150,9 @@ body {
     padding: 16px 24px !important;
     border-top: 2px solid #e5e7eb !important;
     background: white !important;
-    height: 120px !important;
-    min-height: 120px !important;
-    max-height: 120px !important;
+    height: 100px !important;
+    min-height: 100px !important;
+    max-height: 100px !important;
     flex-shrink: 0 !important;
 }
 
