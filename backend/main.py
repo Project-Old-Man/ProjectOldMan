@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routers import chat  # 절대 임포트
 import uvicorn
 import logging
+from datetime import datetime
 
 # 로깅 설정
 logging.basicConfig(level=logging.INFO)
@@ -36,19 +37,38 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """전체 시스템 헬스체크"""
+    """전체 시스템 헬스체크 - 개선된 버전"""
     try:
-        # RAG Pipeline 초기화 테스트
-        from services.rag_pipeline import RAGPipeline
-        rag_pipeline = RAGPipeline()
-        model_info = rag_pipeline.llm_manager.get_model_info()
-        
-        return {
+        # 기본 상태 반환 (RAG Pipeline 없이도 작동)
+        basic_status = {
             "status": "healthy",
-            "message": "All systems operational",
-            "model": model_info["name"],
-            "model_status": model_info["status"]
+            "message": "API server is running",
+            "timestamp": str(datetime.now()),
+            "model": "Unknown",
+            "model_status": "checking"
         }
+        
+        # RAG Pipeline 초기화 시도 (실패해도 기본 상태 반환)
+        try:
+            from services.rag_pipeline import RAGPipeline
+            rag_pipeline = RAGPipeline()
+            model_info = rag_pipeline.llm_manager.get_model_info()
+            
+            basic_status.update({
+                "model": model_info["name"],
+                "model_status": model_info["status"],
+                "message": "All systems operational"
+            })
+        except Exception as rag_error:
+            logger.warning(f"RAG Pipeline check failed: {rag_error}")
+            basic_status.update({
+                "model": "Not loaded",
+                "model_status": "error",
+                "message": f"API running, model loading: {str(rag_error)[:100]}"
+            })
+        
+        return basic_status
+        
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return {

@@ -1,0 +1,21 @@
+category: health
+document_count: 5
+embedding_dim: 384
+embedding_model: all-MiniLM-L6-v2
+tags:
+- 골다공증
+- 포화지방
+- 식단
+- 체중
+- 검진
+- 비타민D
+- 혈압
+- 운동
+- 오메가3
+- 휴식
+- 명상
+- 스트레스
+- 칼슘
+- 당뇨
+- 콜레스테롤
+using_real_model: true

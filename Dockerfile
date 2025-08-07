@@ -35,6 +35,10 @@ RUN pip install --no-cache-dir \
 # LLM 관련 패키지 설치
 RUN pip install --no-cache-dir llama-cpp-python==0.2.56
 
+# NLTK 설치 및 데이터 다운로드 개선
+RUN pip install --no-cache-dir nltk==3.8.1 && \
+    python -c "import nltk; print('NLTK 설치 확인됨'); nltk.download('punkt', quiet=True); nltk.download('stopwords', quiet=True); nltk.download('wordnet', quiet=True); print('NLTK 데이터 다운로드 완료')"
+
 # Transformers와 Sentence-Transformers 설치 (NumPy 버전 고정 유지)
 RUN pip install --no-cache-dir --no-deps \
     transformers==4.21.3 \
@@ -49,7 +53,10 @@ RUN pip install --no-cache-dir \
     regex \
     requests \
     packaging \
-    filelock
+    filelock \
+    click \
+    joblib \
+    threadpoolctl
 
 # FAISS 설치 시도 (실패해도 계속)
 RUN pip install --no-cache-dir faiss-cpu==1.7.3 || echo "FAISS 설치 실패 - 간단 벡터 저장소 사용"
@@ -77,16 +84,28 @@ EXPOSE 9000
 ENV PYTHONPATH=/app/backend
 ENV MODEL_PATH=models/tinyllama.gguf
 ENV USE_MOCK_EMBEDDING=false
+ENV FORCE_REAL_EMBEDDING=true
 ENV PYTHONUNBUFFERED=1
 ENV NUMPY_EXPERIMENTAL_ARRAY_FUNCTION=0
 ENV PIP_NO_DEPS=false
 
-# 서버 시작 전 최종 NumPy 확인
-RUN python -c "import numpy; print(f'Final NumPy check: {numpy.__version__}')"
+# 서버 시작 전 최종 확인 - NLTK 포함
+RUN python -c "import numpy, torch; print(f'✅ NumPy: {numpy.__version__}, PyTorch: {torch.__version__}')" && \
+    python -c "import nltk; print(f'✅ NLTK: {nltk.__version__}')" || echo "⚠️ NLTK 설치 실패 - Mock 모드로 진행"
 
 # 헬스체크 추가
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:9000/health || exit 1
 
+# 1. Uninstall any prebuilt llama-cpp-python (if present)
+RUN pip uninstall -y llama-cpp-python || true
+
+# 2. Install build tools
+RUN pip install cmake ninja scikit-build
+
+# 3. Install llama-cpp-python from source (latest, supports new GGUF)
+RUN pip install --force-reinstall --no-binary llama-cpp-python llama-cpp-python
+
 # 서버 실행
+CMD ["python", "main.py"]
 CMD ["python", "main.py"]

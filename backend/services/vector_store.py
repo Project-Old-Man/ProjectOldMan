@@ -23,7 +23,7 @@ class VectorStore:
             import numpy as np
             logger.info("📚 FAISS 라이브러리 확인됨")
             
-            # FAISS 인덱스 생성
+            # FAISS 인덱스 생성 (768차원으로 설정)
             dimension = self.embedding_service.get_embedding_dim()
             self.index = faiss.IndexFlatIP(dimension)  # Inner Product (코사인 유사도)
             self.use_faiss = True
@@ -39,7 +39,7 @@ class VectorStore:
         try:
             logger.info(f"📝 벡터 데이터베이스에 {len(texts)}개 문서 추가 중...")
             
-            # 실제 임베딩 생성
+            # 실제 임베딩 생성 (이미 normalize_embeddings=True로 정규화됨)
             embeddings = self.embedding_service.encode(texts)
             
             if self.use_faiss and embeddings:
@@ -49,8 +49,8 @@ class VectorStore:
                     
                     embeddings_array = np.array(embeddings, dtype=np.float32)
                     
-                    # L2 정규화 (코사인 유사도를 위해)
-                    faiss.normalize_L2(embeddings_array)
+                    # 임베딩이 이미 정규화되어 있으므로 추가 정규화 불필요
+                    # (normalize_embeddings=True로 인해 이미 L2 정규화됨)
                     
                     # FAISS 인덱스에 추가
                     self.index.add(embeddings_array)
@@ -109,7 +109,7 @@ class VectorStore:
         import faiss
         
         query_array = np.array([query_vec], dtype=np.float32)
-        faiss.normalize_L2(query_array)
+        # 쿼리 임베딩도 이미 정규화되어 있으므로 추가 정규화 불필요
         
         # FAISS 검색
         scores, indices = self.index.search(query_array, min(top_k, len(self.documents)))
@@ -182,4 +182,4 @@ class VectorStore:
             "using_real_embeddings": self.embedding_service.is_using_real_model(),
             "embedding_status": self.embedding_service.get_status()
         }
-           
+

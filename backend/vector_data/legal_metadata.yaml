@@ -1,0 +1,21 @@
+category: legal
+document_count: 5
+embedding_dim: 384
+embedding_model: all-MiniLM-L6-v2
+tags:
+- 재산목록
+- 보증금
+- 조정위원회
+- 신청
+- 주의
+- 상속
+- 월세
+- 유언장
+- 임대차
+- 투자제안
+- 소비자분쟁
+- 계약서
+- 사기예방
+- 조건
+- 책임
+using_real_model: true

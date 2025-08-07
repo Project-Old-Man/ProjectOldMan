@@ -2,8 +2,23 @@ let currentCategory = 'health';
 let currentTab = 'categories';
 let chatHistory = [];
 
-// 백엔드 URL 설정 수정
-const BACKEND_URL = window.location.protocol + '//' + window.location.host;
+// 백엔드 URL 설정 개선 - Docker 환경 우선 고려
+const BACKEND_URL = (() => {
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+    const port = window.location.port;
+    
+    // Docker 환경 감지 (포트 3000에서 실행 중)
+    if (port === '3000' || hostname === 'localhost') {
+        // Nginx 프록시를 통한 백엔드 접근
+        return `${protocol}//${hostname}:${port || '3000'}`;
+    } else {
+        // 개발 환경에서 직접 백엔드 접근
+        return `${protocol}//${hostname}:9000`;
+    }
+})();
+
+console.log(`🔗 백엔드 URL 설정: ${BACKEND_URL}`);
 
 const categoryInfo = {
     health: { 
