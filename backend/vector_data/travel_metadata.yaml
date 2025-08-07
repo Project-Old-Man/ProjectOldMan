@@ -1,0 +1,21 @@
+category: travel
+document_count: 5
+embedding_dim: 384
+embedding_model: all-MiniLM-L6-v2
+tags:
+- 여행자보험
+- 한라산
+- 제주도
+- 부곡온천
+- 불국사
+- 응급약품
+- 해운대
+- 부산
+- 온천
+- 성산일출봉
+- 석굴암
+- 경주
+- 준비
+- 감천문화마을
+- 유성온천
+using_real_model: true

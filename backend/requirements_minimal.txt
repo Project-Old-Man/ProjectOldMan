@@ -1,0 +1,8 @@
+# 최소 필수 패키지만
+fastapi
+uvicorn
+pydantic
+numpy
+llama-cpp-python
+sentence-transformers
+python-dotenv

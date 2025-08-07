@@ -1,0 +1,21 @@
+category: investment
+document_count: 5
+embedding_dim: 384
+embedding_model: all-MiniLM-L6-v2
+tags:
+- 안전투자
+- 세제혜택
+- 수수료
+- ISA
+- 개인연금
+- 연금
+- 부동산
+- 국채
+- 입지
+- 펀드
+- 위험도
+- 예금
+- 퇴직연금
+- 계좌
+- 교통
+using_real_model: true
