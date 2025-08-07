@@ -2,9 +2,8 @@ let currentCategory = 'health';
 let currentTab = 'categories';
 let chatHistory = [];
 
-const BACKEND_URL = window.location.hostname === 'localhost' 
-    ? 'http://localhost:9000' 
-    : 'http://localhost:9000';
+// 백엔드 URL 설정 수정
+const BACKEND_URL = window.location.protocol + '//' + window.location.host;
 
 const categoryInfo = {
     health: { 
@@ -648,16 +647,18 @@ async function sendMessage() {
         // 타이핑 인디케이터 표시
         showTypingIndicator();
         
-        // 백엔드로 메시지 전송
+        // 백엔드로 메시지 전송 (URL 수정)
         try {
-            console.log(`📡 백엔드 호출: ${BACKEND_URL}/chat`);
+            const apiUrl = `${BACKEND_URL}/api/chat`;
+            console.log(`📡 백엔드 호출: ${apiUrl}`);
             console.log(`📝 메시지: ${message}`);
             console.log(`📂 카테고리: ${currentCategory}`);
             
-            const response = await fetch(`${BACKEND_URL}/chat`, {
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                 },
                 body: JSON.stringify({
                     message: message,
@@ -690,7 +691,8 @@ async function sendMessage() {
                 });
                 
             } else {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
         } catch (backendError) {
             console.error('❌ 백엔드 연결 실패:', backendError);
@@ -698,8 +700,8 @@ async function sendMessage() {
             
             let errorMessage = '백엔드 서버에 연결할 수 없습니다.';
             
-            if (backendError.message.includes('fetch')) {
-                errorMessage += '\n\n💡 해결 방법:\n1. 백엔드 서버가 실행 중인지 확인\n2. http://localhost:9000/health 접속 테스트\n3. 방화벽 설정 확인';
+            if (backendError.message.includes('fetch') || backendError.message.includes('NetworkError')) {
+                errorMessage += '\n\n💡 Docker 환경에서 연결 문제가 발생했습니다.\n잠시 후 다시 시도해주세요.';
             }
             
             addMessage(errorMessage, 'bot');
@@ -975,21 +977,25 @@ window.onload = async function() {
     
     // 백엔드 연결 테스트 (수정)
     try {
-        const response = await fetch(`${BACKEND_URL}/health`);
+        const healthUrl = `${BACKEND_URL}/health`;
+        console.log(`🔍 백엔드 헬스체크: ${healthUrl}`);
+        
+        const response = await fetch(healthUrl);
         if (response.ok) {
             const healthData = await response.json();
-            console.log('✅ 백엔드 연결 성공');
-            addSystemMessage(`🟢 백엔드 서버 연결 성공! 사용 중인 모델: ${healthData.model || 'Unknown'}`);
+            console.log('✅ 백엔드 연결 성공:', healthData);
+            addSystemMessage(`🟢 백엔드 서버 연결 성공! 모델: ${healthData.model || 'Unknown'}`);
             
             // 모델 정보 업데이트
             setTimeout(loadModelInfo, 500);
         } else {
-            console.log('⚠️ 백엔드 연결 실패');
+            console.log('⚠️ 백엔드 연결 실패:', response.status);
+            addSystemMessage('🔄 백엔드 서버가 아직 준비되지 않았습니다. 잠시만 기다려주세요...');
         }
     } catch (error) {
         console.log('⚠️ 백엔드 연결 오류:', error);
         setTimeout(() => {
-            addSystemMessage('🔄 백엔드 서버가 시작되고 있습니다. 잠시만 기다려주세요...');
+            addSystemMessage('🔄 백엔드 서버가 시작되고 있습니다. Docker 환경에서는 시간이 걸릴 수 있습니다...');
         }, 1000);
     }
     
@@ -1076,14 +1082,15 @@ async function showModelInfo() {
             
             const availableModels = modelInfo.available_models || [];
             const availableText = availableModels.length > 0 
-                ? `\n\n🗂️ 사용 가능한 모델:\n${availableModels.map(m => `• ${m.name} (${(m.size / 1024 / 1024).toFixed(1)}MB)`).join('\n')}`
+                ? `\n\n🗂️ 사용 가능한 모델:\n${availableModels.map(m => `• ${m.name} (${(m.size_mb || 0).toFixed(1)}MB)`).join('\n')}`
                 : '\n\n📁 models/ 디렉토리에 모델 파일이 없습니다.';
             
             addSystemMessage(`🤖 현재 AI 모델 정보:
 📋 이름: ${modelInfo.name}
 📊 상태: ${statusText[modelInfo.status] || modelInfo.status}
 📂 경로: ${modelInfo.path}
-🔧 타입: ${modelInfo.type}${availableText}`);
+🔧 타입: ${modelInfo.type}
+🎯 임베딩: ${modelInfo.embedding_status?.status || 'Unknown'}${availableText}`);
             
         } else {
             addSystemMessage('❌ 모델 정보를 가져올 수 없습니다.');

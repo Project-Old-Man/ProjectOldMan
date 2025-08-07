@@ -70,6 +70,7 @@ temp/
 
 # Docker
 .dockerignore
+docker-compose.override.yml
 
 # Node.js (if any)
 node_modules/
@@ -81,6 +82,25 @@ yarn-error.log*
 backend/vector/faiss.index
 backend/vector/faiss_meta.json
 
-# models
-model/tinyllama.gguf
-backend/models/tinyllama.gguf
+# models - Git에서는 제외하지만 Docker에서는 포함
+*.gguf
+*.bin
+*.safetensors
+!backend/models/.gitkeep
+!model/.gitkeep
+
+# Docker 빌드 캐시
+.docker/
+
+# Python 캐시 및 빌드
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+build/
+dist/
+*.egg-info/
+
+# NumPy/SciPy 캐시
+**/.numpy/
+**/.scipy/
