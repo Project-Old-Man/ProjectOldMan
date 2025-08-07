@@ -757,9 +757,9 @@ function addMessage(text, sender) {
         `;
     } else {
         messageDiv.innerHTML = `
-            <div class="flex items-start space-x-3 max-w-xs lg:max-w-md">
+            <div class="flex items-start space-x-3 w-full">
                 <div id="typingIcon" class="nori-icon nori-${currentCategory} flex-shrink-0"></div>
-                <div class="message-bot bg-gray-100 px-4 py-3 rounded-lg">
+                <div class="message-bot w-full max-w-none bg-yellow-50 px-6 py-4 rounded-xl">
                     <div class="message-text menu-font text-gray-800">${text}</div>
                     <div class="message-time text-xs text-gray-500 mt-1">${timestamp}</div>
                 </div>
